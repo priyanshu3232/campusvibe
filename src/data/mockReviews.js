@@ -1,0 +1,471 @@
+// CampusVibe — Mock review data
+import { MOCK_USERS } from './mockUsers';
+import { MOCK_PLACES } from './mockPlaces';
+
+export const MOCK_REVIEWS = [
+  // Sharma Ji Ka Dhaba (place_1)
+  {
+    id: 'review_1',
+    userId: 'user_1',
+    placeId: 'place_1',
+    rating: 5,
+    text: 'Chole bhature is fire but you\'ll wait 20 mins in peak hours 🔥 Worth every second though',
+    timestamp: '2026-04-08T12:30:00Z',
+    helpfulCount: 24,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_2',
+    userId: 'user_7',
+    placeId: 'place_1',
+    rating: 4,
+    text: 'Sharma ji ka thali is the best budget meal near campus. Roti unlimited hai bhai.',
+    timestamp: '2026-04-05T13:00:00Z',
+    helpfulCount: 18,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_3',
+    userId: 'user_14',
+    placeId: 'place_1',
+    rating: 4,
+    text: 'Paneer is always good but dal could be better. Still 10x better than mess food.',
+    timestamp: '2026-03-28T14:15:00Z',
+    helpfulCount: 12,
+    wouldRecommend: true,
+  },
+
+  // Raju Chai Wala (place_2)
+  {
+    id: 'review_4',
+    userId: 'user_4',
+    placeId: 'place_2',
+    rating: 5,
+    text: 'Raju bhaiya ki chai is therapy. Har exam ke pehle yahan aata hoon for good luck ☕',
+    timestamp: '2026-04-07T08:00:00Z',
+    helpfulCount: 30,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_5',
+    userId: 'user_9',
+    placeId: 'place_2',
+    rating: 5,
+    text: 'Best cutting chai in a 5km radius. Bun maska is the perfect combo. Open late night = lifesaver.',
+    timestamp: '2026-04-03T23:30:00Z',
+    helpfulCount: 22,
+    wouldRecommend: true,
+  },
+
+  // Night Canteen (place_3)
+  {
+    id: 'review_6',
+    userId: 'user_5',
+    placeId: 'place_3',
+    rating: 4,
+    text: 'Maggi is decent, chai is mid, vibes are 10/10 at 2 AM. You don\'t come here for the food, you come for the experience.',
+    timestamp: '2026-04-06T02:00:00Z',
+    helpfulCount: 27,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_7',
+    userId: 'user_11',
+    placeId: 'place_3',
+    rating: 3,
+    text: 'Bread omelette is hit or miss. Sometimes it\'s amazing, sometimes it\'s just bread with egg memories.',
+    timestamp: '2026-04-01T01:15:00Z',
+    helpfulCount: 15,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_8',
+    userId: 'user_21',
+    placeId: 'place_3',
+    rating: 4,
+    text: 'Cold coffee at 1 AM while debugging code. Night canteen understands us.',
+    timestamp: '2026-03-30T01:45:00Z',
+    helpfulCount: 19,
+    wouldRecommend: true,
+  },
+
+  // Amul Parlour (place_4)
+  {
+    id: 'review_9',
+    userId: 'user_20',
+    placeId: 'place_4',
+    rating: 4,
+    text: 'Amul ice cream after a bad exam is self-care. The chocolate chip is elite.',
+    timestamp: '2026-04-04T15:30:00Z',
+    helpfulCount: 11,
+    wouldRecommend: true,
+  },
+
+  // Campus Cafe (place_5)
+  {
+    id: 'review_10',
+    userId: 'user_12',
+    placeId: 'place_5',
+    rating: 3,
+    text: 'WiFi is okay, coffee is mid, but AC works so that\'s enough. Overpriced sandwich though.',
+    timestamp: '2026-04-07T11:00:00Z',
+    helpfulCount: 8,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_11',
+    userId: 'user_22',
+    placeId: 'place_5',
+    rating: 4,
+    text: 'Good place for group projects. The cold coffee is actually decent. Gets crowded after 4 PM.',
+    timestamp: '2026-04-02T16:30:00Z',
+    helpfulCount: 14,
+    wouldRecommend: true,
+  },
+
+  // Gate 4 Maggi Point (place_6)
+  {
+    id: 'review_12',
+    userId: 'user_17',
+    placeId: 'place_6',
+    rating: 5,
+    text: 'Cheese Maggi here has ruined all other Maggi for me. 10/10, no notes. Bhaiya adds something magical.',
+    timestamp: '2026-04-08T22:00:00Z',
+    helpfulCount: 26,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_13',
+    userId: 'user_3',
+    placeId: 'place_6',
+    rating: 4,
+    text: 'Classic campus Maggi spot. Nothing fancy but hits different when you\'re hungry after lab.',
+    timestamp: '2026-04-03T19:00:00Z',
+    helpfulCount: 10,
+    wouldRecommend: true,
+  },
+
+  // Xerox & Print Corner (place_7)
+  {
+    id: 'review_14',
+    userId: 'user_8',
+    placeId: 'place_7',
+    rating: 3,
+    text: 'Always out of A4, but bhaiya is nice so we keep going. Print quality is okayish.',
+    timestamp: '2026-04-06T09:30:00Z',
+    helpfulCount: 7,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_15',
+    userId: 'user_30',
+    placeId: 'place_7',
+    rating: 2,
+    text: 'Went to print my assignment, printer jammed 3 times. Missed the deadline. Never again.',
+    timestamp: '2026-03-29T10:00:00Z',
+    helpfulCount: 5,
+    wouldRecommend: false,
+  },
+
+  // Gupta General Store (place_8)
+  {
+    id: 'review_16',
+    userId: 'user_29',
+    placeId: 'place_8',
+    rating: 4,
+    text: 'Gupta uncle has everything. Charger? Check. Chips? Check. Random screwdriver? Also check.',
+    timestamp: '2026-04-05T18:00:00Z',
+    helpfulCount: 16,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_17',
+    userId: 'user_6',
+    placeId: 'place_8',
+    rating: 4,
+    text: 'Prices are slightly above MRP but the convenience factor is unbeatable at 11 PM.',
+    timestamp: '2026-04-01T23:15:00Z',
+    helpfulCount: 9,
+    wouldRecommend: true,
+  },
+
+  // South Indian Mess (place_9)
+  {
+    id: 'review_18',
+    userId: 'user_10',
+    placeId: 'place_9',
+    rating: 5,
+    text: 'Filter coffee and masala dosa at 7 AM is the only reason I wake up. South Indian mess supremacy 🫡',
+    timestamp: '2026-04-07T07:30:00Z',
+    helpfulCount: 21,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_19',
+    userId: 'user_15',
+    placeId: 'place_9',
+    rating: 4,
+    text: 'Thali is worth every rupee. Sambar is authentic. Reminds me of home food.',
+    timestamp: '2026-04-02T12:45:00Z',
+    helpfulCount: 13,
+    wouldRecommend: true,
+  },
+
+  // Biryani House (place_10)
+  {
+    id: 'review_20',
+    userId: 'user_32',
+    placeId: 'place_10',
+    rating: 5,
+    text: 'As a Hyderabadi, I\'m very picky about biryani. This place passes the test. Friday special is a must 🍚',
+    timestamp: '2026-04-04T13:30:00Z',
+    helpfulCount: 28,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_21',
+    userId: 'user_19',
+    placeId: 'place_10',
+    rating: 4,
+    text: 'Chicken biryani is solid. Portions could be bigger for the price though. Raita is top tier.',
+    timestamp: '2026-03-31T14:00:00Z',
+    helpfulCount: 17,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_22',
+    userId: 'user_24',
+    placeId: 'place_10',
+    rating: 5,
+    text: 'Order the special dum biryani on Fridays. Trust me. You won\'t regret it. Go early, it sells out.',
+    timestamp: '2026-03-28T13:00:00Z',
+    helpfulCount: 23,
+    wouldRecommend: true,
+  },
+
+  // Momos Corner (place_11)
+  {
+    id: 'review_23',
+    userId: 'user_13',
+    placeId: 'place_11',
+    rating: 3,
+    text: 'Mid momos tbh. Campus Momos near the back gate is still the GOAT. These are fine if you\'re lazy.',
+    timestamp: '2026-04-06T17:00:00Z',
+    helpfulCount: 11,
+    wouldRecommend: false,
+  },
+  {
+    id: 'review_24',
+    userId: 'user_26',
+    placeId: 'place_11',
+    rating: 4,
+    text: 'Tandoori momos are actually really good here. Steamed ones are average. Red chutney is lethal 🌶️',
+    timestamp: '2026-04-01T18:30:00Z',
+    helpfulCount: 14,
+    wouldRecommend: true,
+  },
+
+  // Nescafe Point (place_12)
+  {
+    id: 'review_25',
+    userId: 'user_18',
+    placeId: 'place_12',
+    rating: 3,
+    text: 'It\'s Nescafe. You know what you\'re getting. Location is convenient, that\'s about it.',
+    timestamp: '2026-04-05T10:30:00Z',
+    helpfulCount: 4,
+    wouldRecommend: true,
+  },
+
+  // Domino's (place_13)
+  {
+    id: 'review_26',
+    userId: 'user_16',
+    placeId: 'place_13',
+    rating: 3,
+    text: 'Standard Domino\'s. Use the student coupon codes from the notice board for deals. Delivery takes forever though.',
+    timestamp: '2026-04-03T20:00:00Z',
+    helpfulCount: 6,
+    wouldRecommend: true,
+  },
+
+  // Chaayos (place_14)
+  {
+    id: 'review_27',
+    userId: 'user_28',
+    placeId: 'place_14',
+    rating: 4,
+    text: 'Good chai, nice ambiance. A bit pricey for students but great when parents visit and you need to look classy 😂',
+    timestamp: '2026-04-07T16:00:00Z',
+    helpfulCount: 12,
+    wouldRecommend: true,
+  },
+
+  // Roll Wala (place_15)
+  {
+    id: 'review_28',
+    userId: 'user_25',
+    placeId: 'place_15',
+    rating: 4,
+    text: 'Chicken kathi roll for ₹60 is the best deal near campus. Quick service too. Lunch sorted.',
+    timestamp: '2026-04-06T12:30:00Z',
+    helpfulCount: 15,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_29',
+    userId: 'user_31',
+    placeId: 'place_15',
+    rating: 5,
+    text: 'Paneer roll with extra chutney is my comfort food. Bhaiya knows my order by heart now.',
+    timestamp: '2026-04-02T13:15:00Z',
+    helpfulCount: 10,
+    wouldRecommend: true,
+  },
+
+  // Juice Junction (place_16)
+  {
+    id: 'review_30',
+    userId: 'user_27',
+    placeId: 'place_16',
+    rating: 4,
+    text: 'Mango shake in summer is chef\'s kiss 🥭 Off-season the options are limited but still fresh.',
+    timestamp: '2026-04-04T16:00:00Z',
+    helpfulCount: 8,
+    wouldRecommend: true,
+  },
+
+  // Late Night Paratha Stall (place_17)
+  {
+    id: 'review_31',
+    userId: 'user_2',
+    placeId: 'place_17',
+    rating: 5,
+    text: 'Aloo paratha with extra butter at 1 AM after a coding session. This is peak hostel life. 🧈',
+    timestamp: '2026-04-08T01:30:00Z',
+    helpfulCount: 25,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_32',
+    userId: 'user_23',
+    placeId: 'place_17',
+    rating: 4,
+    text: 'Gobi paratha is underrated here. Also the anda paratha slaps when you\'re pulling an all-nighter.',
+    timestamp: '2026-04-03T02:00:00Z',
+    helpfulCount: 16,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_33',
+    userId: 'user_11',
+    placeId: 'place_17',
+    rating: 5,
+    text: 'If this stall ever closes, the entire hostel will collapse. Not exaggerating. It\'s critical infrastructure.',
+    timestamp: '2026-03-31T03:00:00Z',
+    helpfulCount: 29,
+    wouldRecommend: true,
+  },
+
+  // CCD Gate 2 (place_18)
+  {
+    id: 'review_34',
+    userId: 'user_24',
+    placeId: 'place_18',
+    rating: 3,
+    text: 'Cold coffee is passable. Good meeting spot though. WiFi doesn\'t work half the time.',
+    timestamp: '2026-04-05T15:00:00Z',
+    helpfulCount: 5,
+    wouldRecommend: true,
+  },
+
+  // Sagar Sweets (place_19)
+  {
+    id: 'review_35',
+    userId: 'user_29',
+    placeId: 'place_19',
+    rating: 4,
+    text: 'Samosa here is crispy and perfectly spiced. Best samosa near campus, hands down.',
+    timestamp: '2026-04-07T17:30:00Z',
+    helpfulCount: 13,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_36',
+    userId: 'user_20',
+    placeId: 'place_19',
+    rating: 4,
+    text: 'Gulab jamun for ₹15 is a steal. We order in bulk for birthday celebrations lol 🎂',
+    timestamp: '2026-04-01T19:00:00Z',
+    helpfulCount: 11,
+    wouldRecommend: true,
+  },
+
+  // Baba Ka Dhaba (place_20)
+  {
+    id: 'review_37',
+    userId: 'user_1',
+    placeId: 'place_20',
+    rating: 5,
+    text: 'Monday rajma chawal is a religious experience. Baba knows what we need. Unlimited pyaaz too 🧅',
+    timestamp: '2026-04-07T13:00:00Z',
+    helpfulCount: 30,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_38',
+    userId: 'user_22',
+    placeId: 'place_20',
+    rating: 5,
+    text: 'This place is an emotion. Cheap, tasty, and baba always gives extra dahi. Gem of a place.',
+    timestamp: '2026-04-03T12:30:00Z',
+    helpfulCount: 22,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_39',
+    userId: 'user_17',
+    placeId: 'place_20',
+    rating: 4,
+    text: 'Dal fry and jeera rice combo is underrated. Only ₹40. Where else will you get this?',
+    timestamp: '2026-03-30T13:45:00Z',
+    helpfulCount: 18,
+    wouldRecommend: true,
+  },
+
+  // Campus Book Store (place_21)
+  {
+    id: 'review_40',
+    userId: 'user_8',
+    placeId: 'place_21',
+    rating: 3,
+    text: 'Expensive but you don\'t have a choice when you need the lab manual an hour before class.',
+    timestamp: '2026-04-06T08:00:00Z',
+    helpfulCount: 7,
+    wouldRecommend: false,
+  },
+
+  // Laundry Express (place_22)
+  {
+    id: 'review_41',
+    userId: 'user_15',
+    placeId: 'place_22',
+    rating: 3,
+    text: 'They lost my favorite hoodie once. Got it back after 2 weeks from "someone else\'s pile." Hmm. 🤨',
+    timestamp: '2026-04-04T10:00:00Z',
+    helpfulCount: 9,
+    wouldRecommend: true,
+  },
+  {
+    id: 'review_42',
+    userId: 'user_5',
+    placeId: 'place_22',
+    rating: 4,
+    text: 'Decent service if you\'re too lazy to hand wash. Which is always. ₹30/kg is fair.',
+    timestamp: '2026-03-29T11:00:00Z',
+    helpfulCount: 6,
+    wouldRecommend: true,
+  },
+];
+
+export default MOCK_REVIEWS;
