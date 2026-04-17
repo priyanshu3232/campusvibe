@@ -1,238 +1,245 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, TrendingUp, Users, Trophy, Sparkles, UserPlus, MapPin, Gamepad2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  Search,
+  BarChart3,
+  Users,
+  Sparkles,
+  UserPlus,
+  Flame,
+  Star,
+  X,
+} from 'lucide-react';
 import { MOCK_USERS } from '../data/mockUsers';
 import { useFeed } from '../context/FeedContext';
-import { getLevel } from '../utils/credSystem';
 import Avatar from '../components/ui/Avatar';
 import PostCard from '../components/feed/PostCard';
 import EmptyState from '../components/ui/EmptyState';
-import CollegeLogo from '../components/ui/CollegeLogo';
-import { getCollegeLogoByName } from '../data/collegeLogos';
 import PageTransition from '../components/layout/PageTransition';
 
-const TRENDING = [
-  { topic: '#PlacementSeason', posts: 234, trending: true },
-  { topic: '#CollegeFest2026', posts: 189, trending: true },
-  { topic: '#MessFoodReview', posts: 156, trending: false },
-  { topic: '#InternshipDiaries', posts: 134, trending: true },
-  { topic: '#NightCanteen', posts: 98, trending: false },
-  { topic: '#ExamSeason', posts: 87, trending: true },
+const TRENDING_TOPICS = [
+  { topic: '#PlacementSeason', posts: 234, tint: 'lime' },
+  { topic: '#CollegeFest2026', posts: 189, tint: 'purple' },
+  { topic: '#InternshipDiaries', posts: 134, tint: 'lime' },
+  { topic: '#ExamSeason', posts: 87, tint: 'purple' },
+  { topic: '#MessFoodReview', posts: 156, tint: 'warm' },
 ];
 
-const COLLEGE_RANKINGS = [
-  { name: 'IIT Delhi', posts: 1234, rank: 1 },
-  { name: 'IIT Bombay', posts: 1189, rank: 2 },
-  { name: 'BITS Pilani', posts: 987, rank: 3 },
-  { name: 'IIT Madras', posts: 876, rank: 4 },
-  { name: 'VIT Vellore', posts: 765, rank: 5 },
-];
+const TINT_STYLES = {
+  lime: {
+    bg: 'bg-accent/10',
+    border: 'border-accent/25',
+    text: 'text-accent',
+    count: 'text-accent/70',
+  },
+  purple: {
+    bg: 'bg-accent-purple/10',
+    border: 'border-accent-purple/25',
+    text: 'text-accent-purple',
+    count: 'text-accent-purple/70',
+  },
+  warm: {
+    bg: 'bg-accent-warm/10',
+    border: 'border-accent-warm/25',
+    text: 'text-accent-warm',
+    count: 'text-accent-warm/70',
+  },
+};
 
-const searchCategories = [
-  { id: 'all', label: 'All' },
-  { id: 'people', label: 'People' },
-  { id: 'posts', label: 'Posts' },
-  { id: 'places', label: 'Places' },
-];
+function formatFollowers(n) {
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  return `${n}`;
+}
 
 export default function Explore() {
   const navigate = useNavigate();
   const { posts } = useFeed();
   const [search, setSearch] = useState('');
-  const [searchCategory, setSearchCategory] = useState('all');
+  const [following, setFollowing] = useState(() => new Set());
 
   const filteredUsers = useMemo(() => {
     if (!search) return MOCK_USERS.slice(0, 8);
-    return MOCK_USERS.filter(u =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.username.toLowerCase().includes(search.toLowerCase()) ||
-      u.college.toLowerCase().includes(search.toLowerCase())
+    return MOCK_USERS.filter(
+      u =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.username.toLowerCase().includes(search.toLowerCase()) ||
+        u.college.toLowerCase().includes(search.toLowerCase())
     ).slice(0, 12);
   }, [search]);
 
   const filteredPosts = useMemo(() => {
     if (!search) return [];
-    return posts.filter(p =>
-      p.content?.toLowerCase().includes(search.toLowerCase()) ||
-      p.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()))
-    ).slice(0, 6);
+    return posts
+      .filter(
+        p =>
+          p.content?.toLowerCase().includes(search.toLowerCase()) ||
+          p.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()))
+      )
+      .slice(0, 4);
   }, [search, posts]);
 
   const isSearching = search.length > 0;
-  const showPeople = !isSearching || searchCategory === 'all' || searchCategory === 'people';
-  const showPosts = isSearching && (searchCategory === 'all' || searchCategory === 'posts');
+
+  const toggleFollow = (id) => {
+    setFollowing(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <PageTransition>
-      <div className="pt-2 px-4">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+      <div className="pt-2 px-4 pb-4">
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search students, topics, colleges..."
-            className="w-full bg-input border border-border rounded-xl pl-10 pr-10 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-accent transition-all"
+            className="w-full bg-card border-0 rounded-xl pl-12 pr-10 py-3.5 text-text-primary placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-accent/60 transition-all"
             aria-label="Search"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5" aria-label="Clear search">
-              <X className="w-4 h-4 text-text-tertiary" />
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-tertiary hover:text-text-primary"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* Search category tabs */}
-        {isSearching && (
-          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
-            {searchCategories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSearchCategory(cat.id)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  searchCategory === cat.id ? 'bg-accent text-primary' : 'bg-card text-text-secondary border border-border'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         {!isSearching && (
-          <>
-            {/* Trending Topics */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-accent" />
-                <h3 className="font-display font-bold text-text-primary">Trending Topics</h3>
-              </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {TRENDING.map((item, i) => (
+          <section className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-4 h-4 text-accent" />
+              <h3 className="font-display font-bold text-text-primary">Trending Topics</h3>
+            </div>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+              {TRENDING_TOPICS.map((item, i) => {
+                const style = TINT_STYLES[item.tint];
+                return (
                   <motion.button
                     key={item.topic}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: i * 0.04 }}
                     onClick={() => setSearch(item.topic.replace('#', ''))}
-                    className="shrink-0 p-3 rounded-xl bg-card border border-border min-w-[140px] text-left hover:border-accent/30 transition-colors"
+                    className={`shrink-0 min-w-[160px] p-4 rounded-2xl border text-left hover:scale-[1.02] transition-transform ${style.bg} ${style.border}`}
                   >
-                    <p className="text-sm font-semibold text-accent-purple">{item.topic}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-xs text-text-tertiary">{item.posts} posts</span>
-                      {item.trending && <TrendingUp className="w-3 h-3 text-success" />}
-                    </div>
+                    <p className={`font-display font-bold text-base ${style.text} tracking-tight`}>
+                      {item.topic}
+                    </p>
+                    <p className={`text-xs font-medium mt-1 flex items-center gap-1 ${style.count}`}>
+                      {item.posts} posts
+                      <Flame className="w-3 h-3" />
+                    </p>
                   </motion.button>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          </>
+          </section>
         )}
 
-        {/* Search Results: Posts */}
-        {showPosts && filteredPosts.length > 0 && (
-          <div className="mb-6">
+        {isSearching && filteredPosts.length > 0 && (
+          <section className="mb-8">
             <h3 className="font-display font-bold text-text-primary mb-3">Posts</h3>
             {filteredPosts.map((post, i) => (
               <PostCard key={post.id} post={post} index={i} />
             ))}
-          </div>
+          </section>
         )}
 
-        {/* Users */}
-        {showPeople && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-accent-purple" />
               <h3 className="font-display font-bold text-text-primary">
                 {isSearching ? 'People' : 'Discover Students'}
               </h3>
-              {!isSearching && (
-                <span className="flex items-center gap-1 text-xs text-accent-warm"><Sparkles className="w-3 h-3" /> AI Suggested</span>
-              )}
             </div>
-            {filteredUsers.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {filteredUsers.map((user, i) => {
-                  const level = getLevel(user.credScore);
-                  return (
-                    <motion.div
-                      key={user.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="p-3 rounded-xl bg-card border border-border"
-                    >
-                      <button onClick={() => navigate(`/profile/${user.id}`)} className="w-full text-left">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Avatar avatarId={user.avatar} size="md" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-text-primary truncate">{user.name}</p>
-                            <p className="text-xs text-text-tertiary truncate">@{user.username}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-text-secondary truncate mb-1 flex items-center gap-1">
-                          <CollegeLogo domain={user.collegeDomain} size="xs" />
-                          {user.college}
-                        </p>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs">{level?.emoji}</span>
-                          <span className="text-xs text-text-tertiary">{user.followers} followers</span>
-                        </div>
-                      </button>
-                      <button className="w-full mt-2 py-1.5 rounded-lg bg-accent/10 text-accent text-xs font-semibold flex items-center justify-center gap-1 hover:bg-accent/20 transition-colors" aria-label={`Follow ${user.name}`}>
-                        <UserPlus className="w-3 h-3" /> Follow
-                      </button>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <EmptyState type="search" title="No results" message={`No users found for "${search}"`} />
+            {!isSearching && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold uppercase tracking-wider text-accent">
+                <Sparkles className="w-3 h-3" /> AI Suggested
+              </span>
             )}
           </div>
-        )}
 
-        {/* College Rankings */}
-        {!isSearching && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-4 h-4 text-accent-warm" />
-              <h3 className="font-display font-bold text-text-primary">Most Active Colleges</h3>
+          {filteredUsers.length === 0 ? (
+            <EmptyState
+              type="search"
+              title="No results"
+              message={`No users found for "${search}"`}
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredUsers.map((user, i) => {
+                const isFollowing = following.has(user.id);
+                return (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="p-4 rounded-2xl bg-card border border-border flex flex-col items-center text-center"
+                  >
+                    <button
+                      onClick={() => navigate(`/profile/${user.id}`)}
+                      className="w-full flex flex-col items-center"
+                    >
+                      <div className="relative mb-3">
+                        <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-br from-accent to-accent-purple">
+                          <div className="w-full h-full rounded-full bg-card-alt flex items-center justify-center overflow-hidden">
+                            <Avatar avatarId={user.avatar} size="lg" className="scale-110" />
+                          </div>
+                        </div>
+                        {i === 0 && (
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-accent border-2 border-card flex items-center justify-center">
+                            <Star className="w-2.5 h-2.5 text-primary fill-primary" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="font-display font-bold text-sm text-text-primary truncate w-full">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-text-tertiary truncate w-full">
+                        @{user.username}
+                      </p>
+                      <p className="text-[11px] text-text-secondary mt-1 truncate w-full">
+                        {user.college}
+                      </p>
+                      <p className="text-[11px] text-accent font-bold mt-2 flex items-center gap-1">
+                        <Flame className="w-3 h-3" />
+                        {formatFollowers(user.followers)} followers
+                      </p>
+                    </button>
+                    <button
+                      onClick={() => toggleFollow(user.id)}
+                      className={`w-full mt-3 py-2 rounded-full text-xs font-bold transition-all active:scale-95 ${
+                        isFollowing
+                          ? 'bg-card-alt border border-border text-text-secondary'
+                          : 'bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25'
+                      }`}
+                      aria-label={`${isFollowing ? 'Unfollow' : 'Follow'} ${user.name}`}
+                    >
+                      {isFollowing ? (
+                        'Following'
+                      ) : (
+                        <span className="flex items-center justify-center gap-1">
+                          <UserPlus className="w-3 h-3" /> + Follow
+                        </span>
+                      )}
+                    </button>
+                  </motion.div>
+                );
+              })}
             </div>
-            <div className="space-y-2">
-              {COLLEGE_RANKINGS.map((college, i) => (
-                <motion.div
-                  key={college.name}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
-                >
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    i === 0 ? 'bg-accent-warm/20 text-accent-warm' :
-                    i === 1 ? 'bg-gray-400/20 text-gray-300' :
-                    i === 2 ? 'bg-amber-700/20 text-amber-600' :
-                    'bg-card-alt text-text-tertiary'
-                  }`}>
-                    #{college.rank}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary flex items-center gap-1.5">
-                      {getCollegeLogoByName(college.name) && <img src={getCollegeLogoByName(college.name)} alt="" className="w-5 h-5 object-contain" />}
-                      {college.name}
-                    </p>
-                    <p className="text-xs text-text-tertiary">{college.posts} posts this week</p>
-                  </div>
-                  <div className="w-20 h-2 bg-card-alt rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full" style={{ width: `${(college.posts / 1234) * 100}%` }} />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </section>
       </div>
     </PageTransition>
   );

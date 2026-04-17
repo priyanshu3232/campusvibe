@@ -1,17 +1,34 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, MapPin, Calendar, Edit3, Share2 } from 'lucide-react';
+import { Edit3, Share2, Heart, Sparkles, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useFeed } from '../context/FeedContext';
 import { getLevel } from '../utils/credSystem';
-import { formatDate } from '../utils/formatTime';
 import Avatar from '../components/ui/Avatar';
-import CollegeLogo from '../components/ui/CollegeLogo';
-import PostCard from '../components/feed/PostCard';
 import EmptyState from '../components/ui/EmptyState';
 import PageTransition from '../components/layout/PageTransition';
+
+const CHIP_STYLES = [
+  'bg-accent/10 border-accent/25 text-accent',
+  'bg-accent-purple/10 border-accent-purple/25 text-accent-purple',
+  'bg-accent-warm/10 border-accent-warm/25 text-accent-warm',
+];
+
+function yearLabel(year) {
+  if (!year) return 'Fresher';
+  const n = Number(year);
+  if (n <= 1) return 'Fresher';
+  if (n === 2) return 'Sophomore';
+  if (n === 3) return 'Junior';
+  return 'Senior';
+}
+
+function formatCount(n) {
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  return `${n}`;
+}
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -30,122 +47,222 @@ export default function Profile() {
     { id: 'likes', label: 'Likes', count: likedPosts.length },
   ];
 
+  const activePosts = activeTab === 'posts' ? myPosts : activeTab === 'likes' ? likedPosts : [];
+
   return (
     <PageTransition>
-      <div className="pt-2">
-        {/* Header */}
-        <div className="px-4 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <Avatar avatarId={user?.avatar} size="xl" showRing ringColor="accent-purple" />
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate('/settings')}
-                className="p-2.5 rounded-xl bg-card border border-border text-text-secondary hover:text-text-primary transition-colors"
-                aria-label="Settings"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              <button
-                className="p-2.5 rounded-xl bg-card border border-border text-text-secondary hover:text-text-primary transition-colors"
-                aria-label="Share profile"
-              >
-                <Share2 className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => navigate('/settings')}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-accent text-primary text-sm font-semibold"
-              >
-                <Edit3 className="w-4 h-4" /> Edit
-              </button>
+      <div className="pt-2 px-4 pb-4">
+        <section className="flex flex-col items-center mb-8">
+          <div className="relative">
+            <div className="absolute inset-0 -m-2 rounded-full border-[3px] border-accent shadow-[0_0_20px_rgba(200,245,96,0.35)] animate-pulse" />
+            <div className="relative z-10 w-28 h-28 rounded-full border-4 border-primary overflow-hidden bg-card-alt flex items-center justify-center">
+              <Avatar avatarId={user?.avatar} size="xl" className="scale-110" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 z-20 bg-accent text-primary font-display font-bold text-[10px] px-3 py-1 rounded-full border border-primary shadow-lg uppercase tracking-wider">
+              {yearLabel(user?.year)}
             </div>
           </div>
 
-          <h1 className="text-xl font-display font-bold text-text-primary">{user?.name}</h1>
-          <p className="text-sm text-text-tertiary">@{user?.username}</p>
-          {user?.bio && <p className="text-sm text-text-secondary mt-1">{user.bio}</p>}
+          <h1 className="mt-5 font-display font-black text-3xl tracking-[-0.03em] text-text-primary">
+            {user?.name || 'Your Name'}
+          </h1>
+          <p className="text-text-tertiary font-medium tracking-wide">
+            @{user?.username || 'username'}
+          </p>
 
-          <div className="flex items-center gap-3 mt-2 text-xs text-text-tertiary flex-wrap">
-            <span className="flex items-center gap-1"><CollegeLogo domain={user?.collegeDomain} size="xs" /><MapPin className="w-3 h-3" /> {user?.college}</span>
-            <span>{user?.year} Year · {user?.branch}</span>
-            {user?.joinedAt && (
-              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Joined {formatDate(user.joinedAt)}</span>
+          <div className="flex items-center gap-2 mt-3">
+            {level && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-xs font-semibold text-accent">
+                <span>{level.emoji}</span> {level.name}
+                <span className="text-text-tertiary">· {credScore || user?.credScore || 0}</span>
+              </span>
+            )}
+            {user?.college && (
+              <span className="text-xs text-text-tertiary font-medium truncate max-w-[160px]">
+                {user.college}
+              </span>
             )}
           </div>
 
-          {/* Cred Badge */}
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-            <span className="text-base">{level?.emoji}</span>
-            <span className="text-sm font-semibold text-accent">{level?.name}</span>
-            <span className="text-xs text-text-tertiary">· {credScore || user?.credScore || 0} Cred</span>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-6 mt-4">
+          <div className="mt-6 w-full flex justify-center items-stretch gap-0 px-6 py-3 bg-card/60 rounded-3xl">
             {[
-              { label: 'Posts', value: myPosts.length },
-              { label: 'Followers', value: user?.followers || 0 },
-              { label: 'Following', value: user?.following || 0 },
+              { label: 'Posts', value: formatCount(user?.postsCount ?? myPosts.length) },
+              { label: 'Followers', value: formatCount(user?.followers ?? 0), middle: true },
+              { label: 'Following', value: formatCount(user?.following ?? 0) },
             ].map(stat => (
-              <button key={stat.label} className="text-center group">
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg font-bold text-text-primary group-hover:text-accent transition-colors">
-                  {stat.value}
-                </motion.p>
-                <p className="text-xs text-text-tertiary">{stat.label}</p>
+              <button
+                key={stat.label}
+                className={`flex-1 flex flex-col items-center ${
+                  stat.middle ? 'border-x border-border/40 px-4' : ''
+                }`}
+              >
+                <span className="font-display font-bold text-2xl text-accent">{stat.value}</span>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-text-tertiary mt-0.5">
+                  {stat.label}
+                </span>
               </button>
             ))}
           </div>
 
-          {/* Interests */}
-          {user?.interests?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {user.interests.map(i => (
-                <span key={i} className="px-2.5 py-1 rounded-full bg-card border border-border text-xs text-text-secondary">{i}</span>
-              ))}
-            </div>
-          )}
-        </div>
+          <div className="flex gap-3 w-full mt-5">
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex-1 py-4 rounded-full font-display font-black text-sm uppercase tracking-tight text-primary flex items-center justify-center gap-2 bg-gradient-to-br from-accent to-[#a8d84f] shadow-[0_10px_25px_-10px_rgba(200,245,96,0.5)] active:scale-95 transition-transform"
+            >
+              <Edit3 className="w-4 h-4" strokeWidth={2.5} /> Edit Profile
+            </button>
+            <button
+              onClick={() => navigate('/settings')}
+              className="w-12 h-12 rounded-full border border-border flex items-center justify-center text-text-secondary hover:text-text-primary active:scale-95 transition-all"
+              aria-label="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            <button
+              className="w-12 h-12 rounded-full border border-border flex items-center justify-center text-text-secondary hover:text-text-primary active:scale-95 transition-all"
+              aria-label="Share profile"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
+        </section>
 
-        {/* Tabs */}
-        <div className="flex border-b border-border mb-4" role="tablist">
+        {user?.interests?.length > 0 && (
+          <section className="mb-8 -mx-4">
+            <h3 className="text-[10px] uppercase font-black tracking-[0.2em] text-accent-purple mb-3 px-5">
+              Interests
+            </h3>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar px-5 pb-1">
+              {user.interests.map((interest, i) => {
+                const style = CHIP_STYLES[i % CHIP_STYLES.length];
+                return (
+                  <span
+                    key={interest}
+                    className={`shrink-0 px-4 py-1.5 rounded-full border font-bold text-sm whitespace-nowrap ${style}`}
+                  >
+                    #{interest}
+                  </span>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <div className="flex border-b border-border/50 mb-5 relative" role="tablist">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                activeTab === tab.id ? 'text-accent' : 'text-text-tertiary'
-              }`}
               role="tab"
               aria-selected={activeTab === tab.id}
+              className={`flex-1 pb-3 font-display font-bold uppercase tracking-wide text-sm relative transition-colors ${
+                activeTab === tab.id ? 'text-accent' : 'text-text-tertiary'
+              }`}
             >
-              {tab.label} {tab.count > 0 && <span className="text-xs opacity-60">({tab.count})</span>}
+              {tab.label}
+              {tab.count > 0 && <span className="ml-1 text-xs opacity-70">({tab.count})</span>}
               {activeTab === tab.id && (
-                <motion.div layoutId="profileTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
+                <motion.div
+                  layoutId="profileTabIndicator"
+                  className="absolute -bottom-px left-0 right-0 h-[3px] bg-accent rounded-t-full"
+                />
               )}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
         <div role="tabpanel">
-          {activeTab === 'posts' && (
-            myPosts.length > 0 ? (
-              myPosts.map((post, i) => <PostCard key={post.id} post={post} index={i} />)
-            ) : (
-              <EmptyState type="posts" title="No posts yet" message="Share something with your campus!" action={{ label: 'Create Post', onClick: () => navigate('/create') }} />
-            )
-          )}
-          {activeTab === 'reviews' && (
-            <EmptyState type="reviews" title="No reviews yet" message="Review a place near campus and help your peers!" action={{ label: 'Browse Places', onClick: () => navigate('/reviews') }} />
-          )}
-          {activeTab === 'likes' && (
-            likedPosts.length > 0 ? (
-              likedPosts.map((post, i) => <PostCard key={post.id} post={post} index={i} />)
-            ) : (
-              <EmptyState type="likes" title="No liked posts" message="Posts you like will appear here." />
-            )
+          {activeTab === 'reviews' ? (
+            <EmptyState
+              type="reviews"
+              title="No reviews yet"
+              message="Review a place near campus and help your peers!"
+              action={{ label: 'Browse Places', onClick: () => navigate('/reviews') }}
+            />
+          ) : activePosts.length === 0 ? (
+            <EmptyState
+              type={activeTab === 'posts' ? 'posts' : 'likes'}
+              title={activeTab === 'posts' ? 'No posts yet' : 'No liked posts'}
+              message={
+                activeTab === 'posts'
+                  ? 'Share something with your campus!'
+                  : 'Posts you like will appear here.'
+              }
+              action={
+                activeTab === 'posts'
+                  ? { label: 'Create Post', onClick: () => navigate('/create') }
+                  : undefined
+              }
+            />
+          ) : (
+            <BentoGrid posts={activePosts} onOpen={(id) => navigate(`/profile/${id}`)} />
           )}
         </div>
       </div>
     </PageTransition>
+  );
+}
+
+const BENTO_PATTERN = [
+  'col-span-1 aspect-[4/5]',
+  'col-span-1 aspect-square',
+  'col-span-2 aspect-video',
+  'col-span-1 aspect-square',
+  'col-span-1 aspect-[4/5]',
+];
+
+function BentoGrid({ posts }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {posts.map((post, i) => {
+        const sizing = BENTO_PATTERN[i % BENTO_PATTERN.length];
+        return (
+          <motion.div
+            key={post.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03 }}
+            className={`relative rounded-2xl overflow-hidden bg-card-alt group ${sizing}`}
+          >
+            {post.image ? (
+              <img
+                src={post.image}
+                alt=""
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+                className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
+              />
+            ) : null}
+
+            <div className="absolute inset-0 p-3 flex flex-col justify-between pointer-events-none">
+              {post.type === 'confession' && (
+                <div className="self-end p-1.5 bg-black/40 backdrop-blur-md rounded-lg pointer-events-auto">
+                  <Sparkles className="w-3.5 h-3.5 text-accent-purple" />
+                </div>
+              )}
+              <div className="mt-auto">
+                {!post.image && (
+                  <p className="text-sm text-text-primary font-medium line-clamp-4 mb-2">
+                    {post.content}
+                  </p>
+                )}
+                {post.likes > 0 && (
+                  <div className="inline-flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    <Heart className="w-3 h-3 text-accent fill-accent" />
+                    <span className="text-xs font-bold text-white">
+                      {formatCount(post.likes)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {post.image && (
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+            )}
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }

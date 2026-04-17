@@ -11,7 +11,6 @@ import PostCard from '../components/feed/PostCard';
 import PullToRefresh from '../components/ui/PullToRefresh';
 import EmptyState from '../components/ui/EmptyState';
 import { FeedSkeleton } from '../components/ui/Skeleton';
-import { PlusCircle } from 'lucide-react';
 
 const POSTS_PER_PAGE = 10;
 
@@ -75,18 +74,12 @@ export default function Home() {
   return (
     <PageTransition>
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="pt-2">
+        <div className="pt-3">
           <FeedToggle activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {activeTab === 'college' && (
-            <>
-              <VibePulse collegeName={user?.college} />
-              <div className="px-4 mb-3">
-                <h3 className="text-sm font-semibold text-text-primary mb-2">What's happening at {user?.college}</h3>
-              </div>
-              <TopicBubbles activeTopic={activeTopic} onTopicChange={setActiveTopic} />
-            </>
-          )}
+          <VibePulse collegeName={activeTab === 'college' ? user?.college : undefined} />
+
+          <TopicBubbles activeTopic={activeTopic} onTopicChange={setActiveTopic} />
 
           {refreshing ? (
             <FeedSkeleton count={3} />
@@ -99,7 +92,7 @@ export default function Home() {
                 <div className="flex justify-center py-4">
                   <button
                     onClick={loadMore}
-                    className="px-6 py-2.5 rounded-xl bg-card border border-border text-sm font-medium text-text-secondary hover:text-text-primary hover:border-accent/30 transition-all"
+                    className="px-6 py-2.5 rounded-full bg-card/70 border border-border text-sm font-medium text-text-secondary hover:text-text-primary hover:border-accent/40 transition-all"
                   >
                     Load more posts
                   </button>

@@ -1,33 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Star, Trophy, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const slides = [
   {
-    icon: Users,
-    title: 'Your College Community',
-    description: 'Connect with students from your college. Share, discuss, vibe together.',
-    color: 'text-accent-purple',
-    bg: 'bg-accent-purple/10',
+    kicker: 'Fuel the',
+    accent: 'Campus',
+    accentLine2: 'Noise.',
+    description: 'The unfiltered pulse of your university. Events, secrets, and late-night vibes.',
+    stat: { value: '2.4k+', label: 'Vibes Tonight' },
+    avatars: ['🧑‍💻', '👩‍🎓', '🎸'],
+    extra: '+12',
   },
   {
-    icon: Star,
-    title: 'Review Everything Around Campus',
-    description: 'From chai stalls to xerox shops — rate and review every place near your college.',
-    color: 'text-accent-warm',
-    bg: 'bg-accent-warm/10',
+    kicker: 'Rate every',
+    accent: 'Chai Stall',
+    accentLine2: '& Corner.',
+    description: 'From hostel mess to midnight maggi — review every spot near your campus.',
+    stat: { value: '18k+', label: 'Places Rated' },
+    avatars: ['🧑‍🎨', '👨‍🔬', '📚'],
+    extra: '+48',
   },
   {
-    icon: Trophy,
-    title: 'Play, Compete, Climb',
-    description: 'Earn Campus Cred, play trivia, top the leaderboard.',
-    color: 'text-accent',
-    bg: 'bg-accent/10',
+    kicker: 'Climb the',
+    accent: 'Campus',
+    accentLine2: 'Leaderboard.',
+    description: 'Earn Campus Cred, win trivia, and become a legend on your campus.',
+    stat: { value: '5.1k+', label: 'Players Live' },
+    avatars: ['🎮', '🏃‍♂️', '👩‍💻'],
+    extra: '+27',
   },
 ];
 
-const AUTO_ADVANCE_MS = 5000;
+const AUTO_ADVANCE_MS = 6000;
+const SPLASH_MS = 1800;
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -36,26 +43,23 @@ export default function Onboarding() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2000);
+    const timer = setTimeout(() => setShowSplash(false), SPLASH_MS);
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-advance slides with progress bar
   useEffect(() => {
     if (showSplash) return;
     setProgress(0);
+    const tick = 50;
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
-          setCurrentSlide(curr => {
-            if (curr < slides.length - 1) return curr + 1;
-            return curr;
-          });
+          setCurrentSlide(curr => (curr < slides.length - 1 ? curr + 1 : curr));
           return 0;
         }
-        return prev + (100 / (AUTO_ADVANCE_MS / 50));
+        return prev + (100 / (AUTO_ADVANCE_MS / tick));
       });
-    }, 50);
+    }, tick);
     return () => clearInterval(interval);
   }, [currentSlide, showSplash]);
 
@@ -64,40 +68,32 @@ export default function Onboarding() {
     setProgress(0);
   }, []);
 
+  const handleCTA = useCallback(() => {
+    if (currentSlide < slides.length - 1) {
+      goToSlide(currentSlide + 1);
+    } else {
+      navigate('/login');
+    }
+  }, [currentSlide, goToSlide, navigate]);
+
   if (showSplash) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" role="status" aria-label="Loading CampusVibe">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+      <div
+        className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden"
+        role="status"
+        aria-label="Loading CampusVibe"
+      >
+        <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[420px] h-[420px] rounded-full bg-accent/10 blur-[120px]" />
+        </div>
+        <motion.h1
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center"
+          className="relative z-10 font-display italic font-black text-5xl text-accent tracking-tight"
         >
-          <motion.h1
-            className="text-5xl font-display font-bold"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <span className="text-text-primary">Campus</span>
-            <span className="text-accent">Vibe</span>
-            <motion.span
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1, duration: 0.3 }}
-            >
-              {' '}✨
-            </motion.span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
-            className="text-text-secondary mt-3 text-lg"
-          >
-            Your college, your vibe, your people.
-          </motion.p>
-        </motion.div>
+          CampusVibe
+        </motion.h1>
       </div>
     );
   }
@@ -106,37 +102,94 @@ export default function Onboarding() {
   const isLast = currentSlide === slides.length - 1;
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-12">
-      <div className="flex-1 flex flex-col items-center justify-center" aria-live="polite">
+    <div className="min-h-screen flex flex-col px-6 pt-6 pb-8 relative overflow-hidden">
+      <header className="relative z-10 flex items-center justify-between">
+        <span className="font-display italic font-black text-xl text-accent tracking-tight">
+          CampusVibe
+        </span>
+        <button
+          onClick={() => navigate('/login')}
+          className="text-text-secondary hover:text-text-primary font-medium text-sm transition-colors"
+        >
+          Skip
+        </button>
+      </header>
+
+      <div className="relative flex-1 flex flex-col items-center justify-center text-center">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <motion.div
+            key={`glow-${currentSlide}`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="w-[340px] h-[340px] rounded-full bg-accent/15 blur-[90px]"
+          />
+          <div className="absolute w-[300px] h-[300px] rounded-full border border-accent/15" />
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="text-center max-w-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35 }}
+            className="relative z-10 max-w-sm"
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className={`w-24 h-24 rounded-3xl ${slide.bg} flex items-center justify-center mx-auto mb-8`}
-            >
-              <slide.icon className={`w-12 h-12 ${slide.color}`} />
-            </motion.div>
-            <h2 className="text-2xl font-display font-bold text-text-primary mb-3">
-              {slide.title}
-            </h2>
-            <p className="text-text-secondary leading-relaxed">
+            <h1 className="font-display font-black uppercase tracking-[-0.03em] leading-[0.92] mb-6">
+              <span className="block text-[2.75rem] text-text-primary">{slide.kicker}</span>
+              <span className="block text-[2.75rem] italic text-accent">{slide.accent}</span>
+              <span className="block text-[2.75rem] italic text-accent">{slide.accentLine2}</span>
+            </h1>
+            <p className="text-text-secondary text-base leading-relaxed max-w-xs mx-auto">
               {slide.description}
             </p>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Progress dots with auto-advance indicator */}
-      <div className="flex items-center justify-center gap-2 mb-8" role="tablist" aria-label="Onboarding slides">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`stat-${currentSlide}`}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="relative z-10 mb-6 bg-card/80 border border-border/60 rounded-2xl p-4 flex items-center justify-between"
+        >
+          <div>
+            <p className="font-display font-bold text-2xl text-accent leading-none mb-1">
+              {slide.stat.value}
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-tertiary">
+              {slide.stat.label}
+            </p>
+          </div>
+          <div className="flex items-center -space-x-2">
+            {slide.avatars.map((emoji, i) => (
+              <div
+                key={i}
+                className="w-8 h-8 rounded-full bg-card-alt border-2 border-card flex items-center justify-center text-sm"
+                aria-hidden="true"
+              >
+                {emoji}
+              </div>
+            ))}
+            <div className="w-8 h-8 rounded-full bg-primary border-2 border-card flex items-center justify-center text-[10px] font-bold text-text-primary">
+              {slide.extra}
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      <div
+        className="relative z-10 flex items-center gap-2 mb-5"
+        role="tablist"
+        aria-label="Onboarding slides"
+      >
         {slides.map((_, i) => (
           <button
             key={i}
@@ -144,10 +197,18 @@ export default function Onboarding() {
             role="tab"
             aria-selected={i === currentSlide}
             aria-label={`Slide ${i + 1} of ${slides.length}`}
-            className="relative h-2 rounded-full transition-all duration-300 overflow-hidden"
-            style={{ width: i === currentSlide ? '2rem' : '0.5rem' }}
+            className="relative h-1.5 rounded-full overflow-hidden transition-all duration-300"
+            style={{ width: i === currentSlide ? '2.5rem' : '0.375rem' }}
           >
-            <div className={`absolute inset-0 rounded-full ${i === currentSlide ? 'bg-accent/30' : i < currentSlide ? 'bg-accent' : 'bg-card-alt'}`} />
+            <div
+              className={`absolute inset-0 rounded-full ${
+                i === currentSlide
+                  ? 'bg-accent/25'
+                  : i < currentSlide
+                    ? 'bg-accent'
+                    : 'bg-card-alt'
+              }`}
+            />
             {i === currentSlide && (
               <motion.div
                 className="absolute inset-y-0 left-0 bg-accent rounded-full"
@@ -158,33 +219,14 @@ export default function Onboarding() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        {isLast ? (
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate('/login')}
-            className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform flex items-center justify-center gap-2"
-          >
-            Get Started <ChevronRight className="w-5 h-5" />
-          </motion.button>
-        ) : (
-          <>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => goToSlide(currentSlide + 1)}
-              className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform flex items-center justify-center gap-2"
-            >
-              Next <ChevronRight className="w-5 h-5" />
-            </motion.button>
-            <button
-              onClick={() => navigate('/login')}
-              className="w-full py-3 rounded-xl text-text-tertiary text-sm font-medium hover:text-text-secondary transition-colors"
-            >
-              Skip
-            </button>
-          </>
-        )}
-      </div>
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        onClick={handleCTA}
+        className="relative z-10 w-full py-[18px] rounded-full font-display font-black text-lg uppercase tracking-wide text-primary flex items-center justify-center gap-2 bg-gradient-to-br from-accent to-[#a8d84f] shadow-[0_10px_30px_-10px_rgba(200,245,96,0.55)]"
+      >
+        {isLast ? 'Get Started' : 'Get Started'}
+        <ArrowRight className="w-5 h-5" strokeWidth={3} />
+      </motion.button>
     </div>
   );
 }

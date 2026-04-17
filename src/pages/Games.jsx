@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Brain, School, Type, Trophy, ArrowLeft, X, Loader2, Timer, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Gamepad2, Brain, School, Type, Trophy, ArrowLeft, X, Loader2, Timer, CheckCircle, XCircle, Zap, Play, MapPin, BarChart3 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { callClaude } from '../api/claude';
 import { TRIVIA_QUESTIONS } from '../data/triviaQuestions';
+import { getLevel, LEVELS } from '../utils/credSystem';
 import PageTransition from '../components/layout/PageTransition';
 
 const COLLEGE_CLUES = [
@@ -424,70 +425,191 @@ export default function Games() {
 
   // --- Main game selection screen ---
 
+  const level = getLevel(credScore || 0);
+  const levelIndex = LEVELS.findIndex(l => l.name === level.name);
+  const levelFloor = level.min;
+  const levelCeil = level.max === Infinity ? level.min + 200 : level.max;
+  const levelProgress = Math.min(
+    100,
+    Math.max(0, ((credScore - levelFloor) / (levelCeil - levelFloor)) * 100)
+  );
+
+  const startGame = (gameId) => {
+    setActiveGame(gameId);
+    if (gameId === 'trivia') startTrivia();
+    if (gameId === 'guessCollege') { setGcIndex(0); setGcScore(0); setGcFinished(false); }
+    if (gameId === 'wordChain') { setWcWords([]); setWcFinished(false); setWcStarted(false); }
+  };
+
+  const trivia = games.find(g => g.id === 'trivia');
+  const guess = games.find(g => g.id === 'guessCollege');
+  const wordChain = games.find(g => g.id === 'wordChain');
+
   return (
     <PageTransition>
-      <div className="pt-2 px-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="font-display font-bold text-lg text-text-primary">Game Center</h2>
-            <p className="text-xs text-text-tertiary">Play, earn Cred, climb the leaderboard</p>
+      <div className="pt-2 px-4 pb-4">
+        <section className="relative overflow-hidden mb-8 rounded-2xl p-6 bg-card/70 border-l-4 border-accent shadow-[0_0_30px_rgba(200,245,96,0.05)]">
+          <div
+            aria-hidden="true"
+            className="absolute -right-8 -top-8 w-40 h-40 bg-accent/10 blur-[60px] rounded-full"
+          />
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-accent/70 mb-1">
+              Your Standing
+            </p>
+            <div className="flex items-end gap-3">
+              <h2 className="font-display font-black text-5xl tracking-[-0.04em] text-accent leading-none">
+                {credScore}
+              </h2>
+              <span className="text-lg font-bold text-text-primary mb-1">Cred Points</span>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-2 flex-1 bg-card-alt rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${levelProgress}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="h-full bg-gradient-to-r from-accent to-[#a8d84f] rounded-full shadow-[0_0_10px_rgba(200,245,96,0.4)]"
+                />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-text-tertiary whitespace-nowrap">
+                {level.emoji} Level {levelIndex + 1}
+              </span>
+            </div>
           </div>
-          <button onClick={() => navigate('/leaderboard')} className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-warm/10 text-accent-warm text-xs font-semibold hover:bg-accent-warm/20 transition-colors">
-            <Trophy className="w-3.5 h-3.5" /> Leaderboard
+        </section>
+
+        <div className="flex justify-between items-center mb-5">
+          <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">
+            Active Arenas
+          </h3>
+          <button
+            onClick={() => navigate('/leaderboard')}
+            className="flex items-center gap-2 py-2 px-4 rounded-full bg-accent-purple/20 text-accent-purple border border-accent-purple/30 hover:bg-accent-purple/30 transition-all active:scale-95"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span className="text-xs font-black uppercase tracking-tight">Leaderboard</span>
           </button>
         </div>
 
-        {/* Cred banner */}
-        <div className="p-3 rounded-xl bg-gradient-to-r from-accent/10 to-accent-purple/10 border border-accent/20 mb-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-accent" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-text-primary">{credScore} Cred Points</p>
-            <p className="text-xs text-text-tertiary">Win games to earn more!</p>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => startGame('trivia')}
+            className="col-span-2 relative overflow-hidden rounded-2xl bg-card-alt aspect-[16/9] md:aspect-[21/9] group active:scale-[0.98] transition-transform"
+            aria-label="Play Campus Trivia"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-transparent to-transparent" />
+            <div
+              aria-hidden="true"
+              className="absolute -right-10 top-1/2 -translate-y-1/2 text-[180px] leading-none font-display font-black text-accent-purple/10 select-none"
+            >
+              {trivia.emoji}
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
+            <div className="absolute bottom-0 left-0 p-5 w-full flex justify-between items-end">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black bg-accent-warm/20 text-accent-warm border border-accent-warm/30">
+                    MEDIUM
+                  </span>
+                  <span className="text-accent font-bold text-xs">+20 Cred</span>
+                </div>
+                <h4 className="font-display font-black text-2xl tracking-[-0.02em] text-text-primary">
+                  Campus Trivia
+                </h4>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-accent text-primary flex items-center justify-center shadow-[0_0_20px_rgba(200,245,96,0.4)] group-hover:scale-110 transition-transform">
+                <Play className="w-5 h-5 fill-primary" strokeWidth={0} />
+              </div>
+            </div>
+          </motion.button>
+
+          <GameTile
+            delay={0.05}
+            onClick={() => startGame('guessCollege')}
+            title={guess.label}
+            IconComp={MapPin}
+            iconBg="bg-accent-danger/20"
+            iconColor="text-accent-danger"
+            difficulty="Hard"
+            difficultyStyle="bg-accent-danger/20 text-accent-danger border-accent-danger/30"
+            reward="+15 Cred"
+            cta="Start Match"
+            glowColor="bg-accent-danger/5"
+          />
+
+          <GameTile
+            delay={0.1}
+            onClick={() => startGame('wordChain')}
+            title={wordChain.label}
+            IconComp={Type}
+            iconBg="bg-accent-purple/20"
+            iconColor="text-accent-purple"
+            difficulty="Easy"
+            difficultyStyle="bg-accent/20 text-accent border-accent/30"
+            reward="+10 Cred"
+            cta="Jump In"
+            glowColor="bg-accent/5"
+          />
         </div>
 
-        <div className="space-y-3">
-          {games.map((game, i) => {
-            const Icon = game.icon;
-            return (
-              <motion.button
-                key={game.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                onClick={() => {
-                  setActiveGame(game.id);
-                  if (game.id === 'trivia') startTrivia();
-                  if (game.id === 'guessCollege') { setGcIndex(0); setGcScore(0); setGcFinished(false); }
-                  if (game.id === 'wordChain') { setWcWords([]); setWcFinished(false); setWcStarted(false); }
-                }}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${game.gradient} border ${game.border} hover:shadow-md transition-all text-left group`}
-              >
-                <div className={`w-14 h-14 rounded-xl ${game.bg} flex items-center justify-center text-3xl shrink-0 group-hover:scale-105 transition-transform`}>
-                  {game.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-semibold text-text-primary">{game.label}</p>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                      game.difficulty === 'Easy' ? 'bg-success/10 text-success' :
-                      game.difficulty === 'Medium' ? 'bg-accent-warm/10 text-accent-warm' :
-                      'bg-accent-danger/10 text-accent-danger'
-                    }`}>{game.difficulty}</span>
-                  </div>
-                  <p className="text-xs text-text-secondary">{game.desc}</p>
-                  <p className="text-[10px] text-accent font-medium mt-1 flex items-center gap-1">
-                    <Zap className="w-3 h-3" /> {game.reward}
-                  </p>
-                </div>
-                <div className={`text-xs ${game.color} font-semibold opacity-60 group-hover:opacity-100 transition-opacity`}>Play →</div>
-              </motion.button>
-            );
-          })}
-        </div>
+        <section className="mt-8 p-5 rounded-2xl bg-gradient-to-br from-card to-card/60 border border-border">
+          <h5 className="text-xs font-black uppercase tracking-widest text-text-tertiary mb-4">
+            Daily Quest
+          </h5>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 shrink-0 rounded-full bg-accent-warm/20 flex items-center justify-center text-accent-warm">
+              <Zap className="w-5 h-5 fill-accent-warm" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-text-primary">Win 3 Games of Word Chain</p>
+              <p className="text-xs text-text-tertiary mt-0.5">
+                Reward: Exclusive "Word-Smith" Badge
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-sm font-black text-accent-warm">1/3</p>
+            </div>
+          </div>
+        </section>
       </div>
     </PageTransition>
+  );
+}
+
+function GameTile({ delay, onClick, title, IconComp, iconBg, iconColor, difficulty, difficultyStyle, reward, cta, glowColor }) {
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      onClick={onClick}
+      className="relative overflow-hidden rounded-2xl bg-card aspect-square p-5 flex flex-col justify-between text-left active:scale-[0.98] transition-transform"
+      aria-label={`Play ${title}`}
+    >
+      <div
+        aria-hidden="true"
+        className={`absolute -right-4 -bottom-4 w-32 h-32 blur-3xl rounded-full ${glowColor}`}
+      />
+      <div className="relative">
+        <div className={`w-11 h-11 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center mb-3`}>
+          <IconComp className="w-5 h-5" />
+        </div>
+        <h4 className="font-display font-black text-xl leading-tight tracking-[-0.02em] text-text-primary">
+          {title}
+        </h4>
+        <div className="flex items-center gap-2 mt-2">
+          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${difficultyStyle}`}>
+            {difficulty}
+          </span>
+          <span className="text-accent font-bold text-xs">{reward}</span>
+        </div>
+      </div>
+      <span className="relative w-full py-2.5 rounded-full bg-card-alt font-bold text-[11px] uppercase tracking-widest text-text-primary text-center">
+        {cta}
+      </span>
+    </motion.button>
   );
 }

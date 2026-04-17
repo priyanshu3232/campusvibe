@@ -1,23 +1,26 @@
-import { Sparkles } from 'lucide-react';
+import { Zap, TrendingUp } from 'lucide-react';
 
 export default function VibePulse({ collegeName }) {
   return (
-    <div className="mx-4 mb-4 p-4 rounded-xl glass border border-border">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-4 h-4 text-accent" />
-        <span className="text-sm font-semibold text-text-primary">Campus Vibe Right Now</span>
+    <div className="mx-4 mb-5 relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[#a8d84f] p-5 text-primary">
+      <div
+        aria-hidden="true"
+        className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-20"
+      >
+        <TrendingUp className="w-32 h-32" strokeWidth={2.5} />
       </div>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xl">😊</span>
-        <span className="text-sm text-text-primary font-medium">Mostly Positive (73%)</span>
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-1">
+          <Zap className="w-4 h-4 fill-primary" />
+          <span className="font-display font-black text-sm italic uppercase tracking-wider">
+            VibePulse
+          </span>
+        </div>
+        <p className="font-medium text-sm leading-relaxed max-w-[80%]">
+          Trending now: {collegeName ? `${collegeName}'s annual fest is live!` : 'Campus fests are heating up!'}{' '}
+          Check out the heat.
+        </p>
       </div>
-      <div className="w-full h-2 bg-card-alt rounded-full overflow-hidden mb-3">
-        <div className="h-full bg-gradient-to-r from-accent to-success rounded-full" style={{ width: '73%' }} />
-      </div>
-      <p className="text-xs text-text-secondary">
-        Trending: "Fest prep is insane this week" · "New cafe opened near Gate 4"
-      </p>
-      <p className="text-[10px] text-text-tertiary mt-2">Powered by AI · Updated 5 min ago</p>
     </div>
   );
 }
