@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, AlertCircle, ArrowRight, BadgeCheck, Compass } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { COLLEGE_DOMAINS } from '../data/colleges';
+import { findCollegeByDomain } from '../data/colleges';
 import { getCollegeLogo } from '../data/collegeLogos';
 
 function hashDomain(domain) {
@@ -27,8 +27,9 @@ export default function Login() {
 
   const trimmed = email.trim().toLowerCase();
   const domain = trimmed.includes('@') ? trimmed.split('@')[1] : '';
-  const matchedCollege = domain ? COLLEGE_DOMAINS[domain] : null;
-  const logo = domain ? getCollegeLogo(domain) : null;
+  const matchedCollege = findCollegeByDomain(domain);
+  const rootDomain = matchedCollege?.domain;
+  const logo = rootDomain ? getCollegeLogo(rootDomain) : null;
 
   const validateAndProceed = async () => {
     setError('');
@@ -175,7 +176,7 @@ export default function Login() {
                     {matchedCollege.name}
                   </h3>
                   <p className="text-xs text-text-secondary font-medium">
-                    {activeVibes(domain)} vibes active right now
+                    {activeVibes(rootDomain || domain)} vibes active right now
                   </p>
                 </div>
               </motion.div>

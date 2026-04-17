@@ -181,8 +181,8 @@ export default function Verify() {
         {pendingCollege && (
           <div className="mt-8 bg-card rounded-xl p-4 border border-border w-full max-w-xs text-center">
             <p className="text-xs text-text-tertiary mb-1">Joining</p>
-            {getCollegeLogo(pendingEmail?.split('@')[1]) && (
-              <img src={getCollegeLogo(pendingEmail?.split('@')[1])} alt="" className="w-10 h-10 object-contain mx-auto mb-2" />
+            {getCollegeLogo(pendingCollege?.domain) && (
+              <img src={getCollegeLogo(pendingCollege.domain)} alt="" className="w-10 h-10 object-contain mx-auto mb-2" />
             )}
             <p className="font-display font-bold text-text-primary">{pendingCollege.name}</p>
             <p className="text-xs text-text-secondary">{pendingCollege.city}</p>

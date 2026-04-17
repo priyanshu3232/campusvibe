@@ -58,4 +58,28 @@ export const COLLEGE_DOMAINS = {
   'nalsar.ac.in': { name: 'NALSAR University of Law', city: 'Hyderabad', type: 'Law' },
 };
 
+// Match an email domain to a college, allowing department subdomains.
+// Examples:
+//   'iitr.ac.in'         -> IIT Roorkee  (exact)
+//   'ma.iitr.ac.in'      -> IIT Roorkee  (subdomain)
+//   'cse.iitb.ac.in'     -> IIT Bombay   (subdomain)
+//   'ee.pilani.bits-pilani.ac.in' -> BITS Pilani (deep subdomain)
+export function findCollegeByDomain(emailDomain) {
+  if (!emailDomain) return null;
+  const d = emailDomain.toLowerCase();
+  if (COLLEGE_DOMAINS[d]) return { domain: d, ...COLLEGE_DOMAINS[d] };
+  const parts = d.split('.');
+  for (let i = 1; i < parts.length - 1; i++) {
+    const suffix = parts.slice(i).join('.');
+    if (COLLEGE_DOMAINS[suffix]) return { domain: suffix, ...COLLEGE_DOMAINS[suffix] };
+  }
+  return null;
+}
+
+// Given an email, return the root college domain (e.g. "ma.iitr.ac.in" -> "iitr.ac.in").
+export function rootCollegeDomain(emailDomain) {
+  const match = findCollegeByDomain(emailDomain);
+  return match?.domain || null;
+}
+
 export default COLLEGE_DOMAINS;

@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { supabase } from '../api/supabase';
+import { rootCollegeDomain } from '../data/colleges';
 
 const AuthContext = createContext(null);
 
@@ -130,12 +131,13 @@ export function AuthProvider({ children }) {
     if (!userId) throw new Error('Not authenticated');
 
     const domain = state.pendingEmail?.split('@')[1];
+    const root = rootCollegeDomain(domain);
     let collegeId = null;
-    if (domain) {
+    if (root) {
       const { data: col } = await supabase
         .from('colleges')
         .select('id')
-        .contains('domains', [domain])
+        .contains('domains', [root])
         .maybeSingle();
       collegeId = col?.id || null;
     }
