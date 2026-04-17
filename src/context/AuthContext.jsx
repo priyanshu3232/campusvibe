@@ -130,16 +130,18 @@ export function AuthProvider({ children }) {
     const userId = sess.session?.user?.id;
     if (!userId) throw new Error('Not authenticated');
 
-    const domain = state.pendingEmail?.split('@')[1];
-    const root = rootCollegeDomain(domain);
-    let collegeId = null;
-    if (root) {
-      const { data: col } = await supabase
-        .from('colleges')
-        .select('id')
-        .contains('domains', [root])
-        .maybeSingle();
-      collegeId = col?.id || null;
+    let collegeId = formData.collegeId || null;
+    if (!collegeId) {
+      const domain = state.pendingEmail?.split('@')[1];
+      const root = rootCollegeDomain(domain);
+      if (root) {
+        const { data: col } = await supabase
+          .from('colleges')
+          .select('id')
+          .contains('domains', [root])
+          .maybeSingle();
+        collegeId = col?.id || null;
+      }
     }
 
     const updates = {

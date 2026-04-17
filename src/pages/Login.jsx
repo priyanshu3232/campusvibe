@@ -45,11 +45,6 @@ export default function Login() {
       return;
     }
 
-    if (!matchedCollege) {
-      setError('This email domain is not supported. Only verified college emails are allowed.');
-      return;
-    }
-
     setSending(true);
     try {
       await sendOtp(trimmed, matchedCollege);

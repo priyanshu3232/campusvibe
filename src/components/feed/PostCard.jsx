@@ -2,7 +2,6 @@ import { useState, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, Repeat2, Bookmark, Sparkles, EyeOff } from 'lucide-react';
-import { MOCK_USERS } from '../../data/mockUsers';
 import { useFeed } from '../../context/FeedContext';
 import { formatTime } from '../../utils/formatTime';
 import { getLevel } from '../../utils/credSystem';
@@ -15,11 +14,11 @@ function PostCard({ post, index = 0 }) {
   const [heartBurst, setHeartBurst] = useState(false);
   const [doubleTapHeart, setDoubleTapHeart] = useState(false);
   const lastTap = useRef(0);
-  const user = MOCK_USERS.find(u => u.id === post.userId);
+  const author = post.author || {};
   const isLiked = userLikes.includes(post.id);
   const isSaved = userSaves.includes(post.id);
   const isConfession = post.type === 'confession';
-  const level = user ? getLevel(user.credScore) : null;
+  const level = author.credScore != null ? getLevel(author.credScore) : null;
 
   const handleLike = () => {
     toggleLike(post.id);
@@ -52,7 +51,7 @@ function PostCard({ post, index = 0 }) {
       transition={{ delay: index * 0.05, duration: 0.3 }}
       className="mx-4 mb-3 p-4 rounded-xl bg-card border border-border"
       onClick={handleDoubleTap}
-      aria-label={`Post by ${isConfession ? 'Anonymous' : user?.name || 'Unknown'}`}
+      aria-label={`Post by ${isConfession ? 'Anonymous' : author.name || 'Unknown'}`}
     >
       {/* Header */}
       <div className="flex items-start gap-3 mb-3">
@@ -62,10 +61,10 @@ function PostCard({ post, index = 0 }) {
           </div>
         ) : (
           <button
-            onClick={(e) => { e.stopPropagation(); user && navigate(`/profile/${user.id}`); }}
-            aria-label={`View ${user?.name}'s profile`}
+            onClick={(e) => { e.stopPropagation(); author.id && navigate(`/profile/${author.id}`); }}
+            aria-label={`View ${author.name}'s profile`}
           >
-            <Avatar avatarId={user?.avatar} size="md" />
+            <Avatar avatarId={author.avatar} size="md" />
           </button>
         )}
         <div className="flex-1 min-w-0">
@@ -74,10 +73,10 @@ function PostCard({ post, index = 0 }) {
               <span className="font-semibold text-sm text-accent-purple">Anonymous</span>
             ) : (
               <>
-                <button onClick={(e) => { e.stopPropagation(); user && navigate(`/profile/${user.id}`); }} className="font-semibold text-sm text-text-primary hover:underline truncate">
-                  {user?.name || 'Unknown'}
+                <button onClick={(e) => { e.stopPropagation(); author.id && navigate(`/profile/${author.id}`); }} className="font-semibold text-sm text-text-primary hover:underline truncate">
+                  {author.name || 'Unknown'}
                 </button>
-                <span className="text-text-tertiary text-xs">@{user?.username}</span>
+                <span className="text-text-tertiary text-xs">@{author.username}</span>
                 {level && <span className="text-xs" title={level.name}>{level.emoji}</span>}
               </>
             )}
@@ -86,8 +85,8 @@ function PostCard({ post, index = 0 }) {
             </span>
           </div>
           <p className="text-text-tertiary text-xs mt-0.5 flex items-center gap-1">
-            {!isConfession && <CollegeLogo domain={user?.collegeDomain} size="xs" />}
-            {isConfession ? post.collegeName : user?.college} {!isConfession && user?.year && `· ${user.year} Year`}
+            {!isConfession && <CollegeLogo domain={author.collegeDomain} size="xs" />}
+            {isConfession ? post.collegeName : author.college} {!isConfession && author.year && `· ${author.year} Year`}
           </p>
         </div>
       </div>

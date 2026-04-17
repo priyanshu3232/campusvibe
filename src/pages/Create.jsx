@@ -72,6 +72,8 @@ export default function Create() {
   const [pollDuration, setPollDuration] = useState('24h');
   const [showImagePlaceholder, setShowImagePlaceholder] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState('');
 
   const apiKey = localStorage.getItem('campusvibe_api_key');
 
@@ -124,25 +126,30 @@ export default function Create() {
     setAiLoading(false);
   };
 
-  const handleSubmit = () => {
-    if (!content.trim()) return;
-    const post = {
-      userId: 'user_me',
-      type,
-      content: content.trim(),
-      tags: content.match(/#\w+/g)?.map(t => t.slice(1)) || [],
-      isGlobal,
-      image: null,
-      ...(type === 'confession' && { collegeName: user?.college }),
-      ...(type === 'poll' && {
-        pollOptions: pollOptions.filter(o => o.trim()).map(text => ({ text, votes: 0 })),
-        pollDuration,
-      }),
-    };
-    addPost(post);
-    earnCred(isGlobal ? 'post_global' : 'post_college');
-    localStorage.removeItem(DRAFT_KEY);
-    navigate('/home');
+  const handleSubmit = async () => {
+    if (!content.trim() || posting) return;
+    setPosting(true);
+    setPostError('');
+    try {
+      const post = {
+        type,
+        content: content.trim(),
+        tags: content.match(/#\w+/g)?.map(t => t.slice(1)) || [],
+        isGlobal,
+        ...(type === 'poll' && {
+          pollOptions: pollOptions.filter(o => o.trim()),
+          pollDuration,
+        }),
+      };
+      await addPost(post);
+      earnCred(isGlobal ? 'post_global' : 'post_college');
+      localStorage.removeItem(DRAFT_KEY);
+      navigate('/home');
+    } catch (err) {
+      setPostError(err?.message || 'Could not post. Try again.');
+    } finally {
+      setPosting(false);
+    }
   };
 
   const currentType = postTypes.find(t => t.id === type);
@@ -177,11 +184,11 @@ export default function Create() {
           </div>
           <button
             onClick={handleSubmit}
-            disabled={!content.trim()}
+            disabled={!content.trim() || posting}
             className="px-6 py-2 rounded-full bg-accent text-primary font-display font-bold text-sm tracking-wider uppercase shadow-[0_0_15px_rgba(200,245,96,0.3)] disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all"
             aria-label="Publish post"
           >
-            Post
+            {posting ? 'Posting...' : 'Post'}
           </button>
         </div>
 
@@ -418,6 +425,10 @@ export default function Create() {
               🎭 This will be posted anonymously. Only your college name will be shown.
             </p>
           </div>
+        )}
+
+        {postError && (
+          <p className="mt-3 text-sm text-accent-danger" role="alert">{postError}</p>
         )}
 
         {content.trim() && (

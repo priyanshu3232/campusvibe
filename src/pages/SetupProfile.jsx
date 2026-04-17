@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AVATARS } from '../data/avatars';
 import Avatar from '../components/ui/Avatar';
+import { supabase } from '../api/supabase';
 
 const BRANCHES = [
   'Computer Science (CSE)', 'Electronics (ECE)', 'Electrical (EEE)', 'Mechanical',
@@ -31,9 +32,19 @@ export default function SetupProfile() {
     avatar: 'av1',
     year: '',
     branch: '',
+    collegeId: '',
     interests: [],
   });
   const [errors, setErrors] = useState({});
+  const [colleges, setColleges] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from('colleges')
+      .select('id, name, city')
+      .order('name')
+      .then(({ data }) => setColleges(data || []));
+  }, []);
 
   const validateStep1 = () => {
     const e = {};
@@ -46,6 +57,7 @@ export default function SetupProfile() {
 
   const validateStep2 = () => {
     const e = {};
+    if (!form.collegeId) e.collegeId = 'Select your college';
     if (!form.year) e.year = 'Select your year';
     if (!form.branch) e.branch = 'Select your branch';
     setErrors(e);
@@ -182,6 +194,23 @@ export default function SetupProfile() {
             <p className="text-text-secondary mb-6">Help us personalize your experience</p>
 
             <div className="space-y-4">
+              <div>
+                <label htmlFor="college-select" className="block text-sm text-text-secondary mb-2 font-medium">College</label>
+                <select
+                  id="college-select"
+                  value={form.collegeId}
+                  onChange={e => setForm({ ...form, collegeId: e.target.value })}
+                  aria-invalid={!!errors.collegeId}
+                  className="w-full bg-input border border-border rounded-xl px-4 py-3 text-text-primary outline-none focus:border-accent transition-all appearance-none"
+                >
+                  <option value="" className="text-text-tertiary">Select your college</option>
+                  {colleges.map(c => (
+                    <option key={c.id} value={c.id} className="bg-input">{c.name}{c.city ? ` · ${c.city}` : ''}</option>
+                  ))}
+                </select>
+                {errors.collegeId && <p className="text-accent-danger text-xs mt-1" role="alert">{errors.collegeId}</p>}
+              </div>
+
               <div>
                 <label className="block text-sm text-text-secondary mb-2 font-medium">Year</label>
                 <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Select year">
