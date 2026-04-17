@@ -20,16 +20,17 @@ function activeVibes(domain) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setPendingEmail } = useAuth();
+  const { sendOtp } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [sending, setSending] = useState(false);
 
   const trimmed = email.trim().toLowerCase();
   const domain = trimmed.includes('@') ? trimmed.split('@')[1] : '';
   const matchedCollege = domain ? COLLEGE_DOMAINS[domain] : null;
   const logo = domain ? getCollegeLogo(domain) : null;
 
-  const validateAndProceed = () => {
+  const validateAndProceed = async () => {
     setError('');
 
     if (!trimmed) {
@@ -48,8 +49,15 @@ export default function Login() {
       return;
     }
 
-    setPendingEmail(trimmed, matchedCollege);
-    navigate('/verify');
+    setSending(true);
+    try {
+      await sendOtp(trimmed, matchedCollege);
+      navigate('/verify');
+    } catch (err) {
+      setError(err?.message || 'Could not send code. Try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -176,11 +184,12 @@ export default function Login() {
 
           <motion.button
             type="submit"
+            disabled={sending}
             whileTap={{ scale: 0.97 }}
-            className="w-full py-[18px] rounded-xl font-display font-black text-lg uppercase tracking-tight text-primary flex items-center justify-center gap-2 bg-gradient-to-br from-accent to-[#a8d84f] shadow-[0_10px_30px_-10px_rgba(200,245,96,0.55)] hover:scale-[1.01] active:scale-[0.97] transition-transform"
+            className="w-full py-[18px] rounded-xl font-display font-black text-lg uppercase tracking-tight text-primary flex items-center justify-center gap-2 bg-gradient-to-br from-accent to-[#a8d84f] shadow-[0_10px_30px_-10px_rgba(200,245,96,0.55)] hover:scale-[1.01] active:scale-[0.97] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Enter the Vibe
-            <ArrowRight className="w-5 h-5" strokeWidth={3} />
+            {sending ? 'Sending code...' : 'Enter the Vibe'}
+            {!sending && <ArrowRight className="w-5 h-5" strokeWidth={3} />}
           </motion.button>
 
           <div className="flex items-center gap-3 pt-2" aria-hidden="true">

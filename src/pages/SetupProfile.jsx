@@ -21,8 +21,9 @@ const STEP_LABELS = ['Profile', 'Academic', 'Interests'];
 
 export default function SetupProfile() {
   const navigate = useNavigate();
-  const { pendingEmail, pendingCollege, login } = useAuth();
+  const { completeSetup } = useAuth();
   const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -51,26 +52,20 @@ export default function SetupProfile() {
     return Object.keys(e).length === 0;
   };
 
-  const handleNext = () => {
-    if (step === 1 && validateStep1()) setStep(2);
-    else if (step === 2 && validateStep2()) setStep(3);
-    else if (step === 3) {
-      const userData = {
-        userId: 'user_me',
-        email: pendingEmail || 'demo@iitd.ac.in',
-        college: pendingCollege?.name || 'IIT Delhi',
-        collegeDomain: pendingEmail?.split('@')[1] || 'iitd.ac.in',
-        city: pendingCollege?.city || 'New Delhi',
-        ...form,
-        credScore: 25,
-        followers: 0,
-        following: 0,
-        postsCount: 0,
-        reviewsCount: 0,
-        joinedAt: new Date().toISOString(),
-      };
-      login(userData);
-      navigate('/home');
+  const handleNext = async () => {
+    if (step === 1 && validateStep1()) { setStep(2); return; }
+    if (step === 2 && validateStep2()) { setStep(3); return; }
+    if (step === 3) {
+      setSaving(true);
+      try {
+        await completeSetup(form);
+        navigate('/home');
+      } catch (err) {
+        const msg = err?.message || 'Could not save profile';
+        setErrors({ submit: msg.includes('duplicate') ? 'Username already taken' : msg });
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -253,12 +248,18 @@ export default function SetupProfile() {
         )}
       </motion.div>
 
+      {errors.submit && (
+        <p className="text-accent-danger text-sm mt-4 text-center" role="alert">{errors.submit}</p>
+      )}
+
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={handleNext}
-        className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform mt-6 flex items-center justify-center gap-2"
+        disabled={saving}
+        className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform mt-6 flex items-center justify-center gap-2 disabled:opacity-60"
       >
-        {step === 3 ? "Let's Go!" : 'Continue'} <ChevronRight className="w-5 h-5" />
+        {saving ? 'Saving...' : step === 3 ? "Let's Go!" : 'Continue'}
+        {!saving && <ChevronRight className="w-5 h-5" />}
       </motion.button>
     </div>
   );
