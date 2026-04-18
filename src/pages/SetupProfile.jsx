@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AVATARS } from '../data/avatars';
 import Avatar from '../components/ui/Avatar';
-import { supabase } from '../api/supabase';
 
 const BRANCHES = [
   'Computer Science (CSE)', 'Electronics (ECE)', 'Electrical (EEE)', 'Mechanical',
@@ -22,9 +21,8 @@ const STEP_LABELS = ['Profile', 'Academic', 'Interests'];
 
 export default function SetupProfile() {
   const navigate = useNavigate();
-  const { completeSetup } = useAuth();
+  const { pendingEmail, pendingCollege, login } = useAuth();
   const [step, setStep] = useState(1);
-  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -32,19 +30,9 @@ export default function SetupProfile() {
     avatar: 'av1',
     year: '',
     branch: '',
-    collegeId: '',
     interests: [],
   });
   const [errors, setErrors] = useState({});
-  const [colleges, setColleges] = useState([]);
-
-  useEffect(() => {
-    supabase
-      .from('colleges')
-      .select('id, name, city')
-      .order('name')
-      .then(({ data }) => setColleges(data || []));
-  }, []);
 
   const validateStep1 = () => {
     const e = {};
@@ -57,27 +45,32 @@ export default function SetupProfile() {
 
   const validateStep2 = () => {
     const e = {};
-    if (!form.collegeId) e.collegeId = 'Select your college';
     if (!form.year) e.year = 'Select your year';
     if (!form.branch) e.branch = 'Select your branch';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleNext = async () => {
-    if (step === 1 && validateStep1()) { setStep(2); return; }
-    if (step === 2 && validateStep2()) { setStep(3); return; }
-    if (step === 3) {
-      setSaving(true);
-      try {
-        await completeSetup(form);
-        navigate('/home');
-      } catch (err) {
-        const msg = err?.message || 'Could not save profile';
-        setErrors({ submit: msg.includes('duplicate') ? 'Username already taken' : msg });
-      } finally {
-        setSaving(false);
-      }
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) setStep(2);
+    else if (step === 2 && validateStep2()) setStep(3);
+    else if (step === 3) {
+      const userData = {
+        userId: 'user_me',
+        email: pendingEmail || 'demo@iitd.ac.in',
+        college: pendingCollege?.name || 'IIT Delhi',
+        collegeDomain: pendingCollege?.domain || pendingEmail?.split('@')[1] || 'iitd.ac.in',
+        city: pendingCollege?.city || 'New Delhi',
+        ...form,
+        credScore: 25,
+        followers: 0,
+        following: 0,
+        postsCount: 0,
+        reviewsCount: 0,
+        joinedAt: new Date().toISOString(),
+      };
+      login(userData);
+      navigate('/home');
     }
   };
 
@@ -195,23 +188,6 @@ export default function SetupProfile() {
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="college-select" className="block text-sm text-text-secondary mb-2 font-medium">College</label>
-                <select
-                  id="college-select"
-                  value={form.collegeId}
-                  onChange={e => setForm({ ...form, collegeId: e.target.value })}
-                  aria-invalid={!!errors.collegeId}
-                  className="w-full bg-input border border-border rounded-xl px-4 py-3 text-text-primary outline-none focus:border-accent transition-all appearance-none"
-                >
-                  <option value="" className="text-text-tertiary">Select your college</option>
-                  {colleges.map(c => (
-                    <option key={c.id} value={c.id} className="bg-input">{c.name}{c.city ? ` · ${c.city}` : ''}</option>
-                  ))}
-                </select>
-                {errors.collegeId && <p className="text-accent-danger text-xs mt-1" role="alert">{errors.collegeId}</p>}
-              </div>
-
-              <div>
                 <label className="block text-sm text-text-secondary mb-2 font-medium">Year</label>
                 <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Select year">
                   {['1st', '2nd', '3rd', '4th', '5th'].map(y => (
@@ -277,18 +253,12 @@ export default function SetupProfile() {
         )}
       </motion.div>
 
-      {errors.submit && (
-        <p className="text-accent-danger text-sm mt-4 text-center" role="alert">{errors.submit}</p>
-      )}
-
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={handleNext}
-        disabled={saving}
-        className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform mt-6 flex items-center justify-center gap-2 disabled:opacity-60"
+        className="w-full py-4 rounded-xl bg-accent text-primary font-bold text-lg transition-transform mt-6 flex items-center justify-center gap-2"
       >
-        {saving ? 'Saving...' : step === 3 ? "Let's Go!" : 'Continue'}
-        {!saving && <ChevronRight className="w-5 h-5" />}
+        {step === 3 ? "Let's Go!" : 'Continue'} <ChevronRight className="w-5 h-5" />
       </motion.button>
     </div>
   );
