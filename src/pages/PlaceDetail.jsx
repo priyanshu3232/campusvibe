@@ -1,22 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Sparkles, ThumbsUp, Send } from 'lucide-react';
+import { ArrowLeft, MapPin, Sparkles, ThumbsUp, Send, Loader2 } from 'lucide-react';
 import { MOCK_PLACES } from '../data/mockPlaces';
 import { MOCK_REVIEWS } from '../data/mockReviews';
 import { MOCK_USERS } from '../data/mockUsers';
 import { useAuth } from '../context/AuthContext';
 import { formatTime } from '../utils/formatTime';
+import { summarizeReviews } from '../api/claude';
 import Avatar from '../components/ui/Avatar';
 import StarRating from '../components/ui/StarRating';
 import PageTransition from '../components/layout/PageTransition';
 
-const AI_SUMMARIES = {
+const FALLBACK_SUMMARIES = {
   place_1: "Students love the chole bhature and paratha rolls. Common complaints include slow service during lunch rush and limited seating. Best visited during off-peak hours.",
   place_2: "The chai here is legendary among students - strong, sweet, and cheap. Perfect spot for late-night study breaks. The biscuits are a nice touch.",
   place_3: "A campus staple for late-night cravings. The maggi is consistently good, and the vibe at 2 AM is unmatched. Prices are student-friendly.",
   default: "Students generally enjoy this place for its affordable prices and proximity to campus. Service quality varies but the food is consistently decent.",
 };
+
+const SUMMARY_CACHE_KEY = 'campusvibe_place_summaries';
+
+function loadCachedSummary(placeId) {
+  try {
+    const cache = JSON.parse(localStorage.getItem(SUMMARY_CACHE_KEY) || '{}');
+    return cache[placeId] || null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSummary(placeId, summary) {
+  try {
+    const cache = JSON.parse(localStorage.getItem(SUMMARY_CACHE_KEY) || '{}');
+    cache[placeId] = summary;
+    localStorage.setItem(SUMMARY_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // cache write is best-effort
+  }
+}
 
 export default function PlaceDetail() {
   const { placeId } = useParams();
@@ -27,6 +49,29 @@ export default function PlaceDetail() {
   const [newReview, setNewReview] = useState('');
   const [newRating, setNewRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [aiSummary, setAiSummary] = useState(() =>
+    loadCachedSummary(placeId) || FALLBACK_SUMMARIES[placeId] || FALLBACK_SUMMARIES.default
+  );
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  useEffect(() => {
+    const apiKey = localStorage.getItem('campusvibe_api_key');
+    if (!apiKey || !place || reviews.length === 0) return;
+    if (loadCachedSummary(placeId)) return;
+
+    let cancelled = false;
+    setSummaryLoading(true);
+    summarizeReviews(place.name, reviews, apiKey)
+      .then(result => {
+        if (cancelled || !result) return;
+        const trimmed = result.trim();
+        setAiSummary(trimmed);
+        cacheSummary(placeId, trimmed);
+      })
+      .finally(() => { if (!cancelled) setSummaryLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [placeId, place, reviews]);
 
   if (!place) {
     return (
@@ -42,8 +87,6 @@ export default function PlaceDetail() {
     const count = reviews.filter(r => Math.round(r.rating) === stars).length;
     return { stars, count, percent: reviews.length > 0 ? (count / reviews.length) * 100 : 0 };
   });
-
-  const aiSummary = AI_SUMMARIES[placeId] || AI_SUMMARIES.default;
 
   return (
     <PageTransition>
@@ -70,6 +113,7 @@ export default function PlaceDetail() {
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm font-semibold text-accent">AI Summary</span>
+            {summaryLoading && <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />}
           </div>
           <p className="text-sm text-text-secondary leading-relaxed">{aiSummary}</p>
         </div>

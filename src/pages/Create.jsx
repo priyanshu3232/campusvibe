@@ -10,11 +10,12 @@ import {
   Plus,
   Trash2,
   Loader2,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
 import { useGame } from '../context/GameContext';
-import { callClaude } from '../api/claude';
+import { callClaude, moderatePost } from '../api/claude';
 import PageTransition from '../components/layout/PageTransition';
 
 const DRAFT_KEY = 'campusvibe_draft';
@@ -72,6 +73,9 @@ export default function Create() {
   const [pollDuration, setPollDuration] = useState('24h');
   const [showImagePlaceholder, setShowImagePlaceholder] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
+  const [moderation, setModeration] = useState(null);
+  const [moderationChecking, setModerationChecking] = useState(false);
+  const [overrideModeration, setOverrideModeration] = useState(false);
 
   const apiKey = localStorage.getItem('campusvibe_api_key');
 
@@ -124,8 +128,7 @@ export default function Create() {
     setAiLoading(false);
   };
 
-  const handleSubmit = () => {
-    if (!content.trim()) return;
+  const publishPost = () => {
     const post = {
       userId: 'user_me',
       type,
@@ -143,6 +146,29 @@ export default function Create() {
     earnCred(isGlobal ? 'post_global' : 'post_college');
     localStorage.removeItem(DRAFT_KEY);
     navigate('/home');
+  };
+
+  const handleSubmit = async () => {
+    if (!content.trim()) return;
+
+    if (overrideModeration || !apiKey || type === 'poll') {
+      publishPost();
+      return;
+    }
+
+    setModerationChecking(true);
+    try {
+      const raw = await moderatePost(content.trim(), apiKey);
+      const match = raw?.match(/\{[\s\S]*\}/);
+      const parsed = match ? JSON.parse(match[0]) : null;
+      if (parsed?.toxic && parsed.severity === 'severe') {
+        setModeration(parsed);
+        setModerationChecking(false);
+        return;
+      }
+    } catch {}
+    setModerationChecking(false);
+    publishPost();
   };
 
   const currentType = postTypes.find(t => t.id === type);
@@ -177,10 +203,11 @@ export default function Create() {
           </div>
           <button
             onClick={handleSubmit}
-            disabled={!content.trim()}
-            className="px-6 py-2 rounded-full bg-accent text-primary font-display font-bold text-sm tracking-wider uppercase shadow-[0_0_15px_rgba(200,245,96,0.3)] disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all"
+            disabled={!content.trim() || moderationChecking}
+            className="px-6 py-2 rounded-full bg-accent text-primary font-display font-bold text-sm tracking-wider uppercase shadow-[0_0_15px_rgba(200,245,96,0.3)] disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all flex items-center gap-1.5"
             aria-label="Publish post"
           >
+            {moderationChecking && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Post
           </button>
         </div>
@@ -419,6 +446,42 @@ export default function Create() {
             </p>
           </div>
         )}
+
+        <AnimatePresence>
+          {moderation && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="mt-4 p-4 rounded-xl bg-accent-danger/10 border border-accent-danger/30"
+              role="alert"
+            >
+              <div className="flex items-start gap-2 mb-2">
+                <ShieldAlert className="w-4 h-4 text-accent-danger shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-accent-danger mb-1">Hold on — this post may break community guidelines.</p>
+                  {moderation.reason && (
+                    <p className="text-xs text-text-secondary">{moderation.reason}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => setModeration(null)}
+                  className="flex-1 py-2 rounded-lg bg-accent text-primary text-xs font-bold active:scale-95 transition-transform"
+                >
+                  Edit post
+                </button>
+                <button
+                  onClick={() => { setModeration(null); setOverrideModeration(true); publishPost(); }}
+                  className="flex-1 py-2 rounded-lg bg-card-alt border border-border text-text-secondary text-xs font-medium active:scale-95 transition-transform"
+                >
+                  Post anyway
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {content.trim() && (
           <button

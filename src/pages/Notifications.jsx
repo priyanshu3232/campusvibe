@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -13,9 +13,12 @@ import {
   ArrowUp,
   Gamepad2,
   Bell,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { MOCK_NOTIFICATIONS } from '../data/mockNotifications';
 import { formatTime } from '../utils/formatTime';
+import { summarizeNotifications } from '../api/claude';
 import EmptyState from '../components/ui/EmptyState';
 import PageTransition from '../components/layout/PageTransition';
 
@@ -94,10 +97,25 @@ function isSystemNotif(notif) {
 export default function Notifications() {
   const navigate = useNavigate();
   const [readIds, setReadIds] = useState(new Set());
+  const [digest, setDigest] = useState('');
+  const [digestLoading, setDigestLoading] = useState(false);
   const groups = useMemo(() => groupByDate(MOCK_NOTIFICATIONS), []);
 
   const isRead = (notif) => notif.read || readIds.has(notif.id);
   const todayUnread = groups.Today.filter(n => !isRead(n)).length;
+
+  useEffect(() => {
+    const apiKey = localStorage.getItem('campusvibe_api_key');
+    if (!apiKey || groups.Today.length === 0) return;
+
+    let cancelled = false;
+    setDigestLoading(true);
+    summarizeNotifications(groups.Today, apiKey)
+      .then(result => { if (!cancelled && result) setDigest(result.trim()); })
+      .finally(() => { if (!cancelled) setDigestLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [groups.Today]);
 
   const handleClick = (notif) => {
     setReadIds(prev => {
@@ -135,6 +153,21 @@ export default function Notifications() {
           </h2>
           <p className="text-text-secondary text-sm mt-1">Don't miss the campus pulse.</p>
         </header>
+
+        {(digest || digestLoading) && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl glass border border-accent/20"
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span className="text-xs font-bold uppercase tracking-wider text-accent">AI Digest</span>
+              {digestLoading && <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />}
+            </div>
+            {digest && <p className="text-sm text-text-secondary leading-relaxed">{digest}</p>}
+          </motion.div>
+        )}
 
         {groups.Today.length > 0 && (
           <NotifSection

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AVATARS } from '../data/avatars';
 import { getProfileImage } from '../utils/profileImage';
+import { generateBio } from '../api/claude';
 import Avatar from '../components/ui/Avatar';
 
 const BRANCHES = [
@@ -34,6 +35,21 @@ export default function SetupProfile() {
     interests: [],
   });
   const [errors, setErrors] = useState({});
+  const [bioLoading, setBioLoading] = useState(false);
+
+  const handleGenerateBio = async () => {
+    const apiKey = localStorage.getItem('campusvibe_api_key');
+    if (!apiKey) return;
+    const seed = [form.name, form.branch, form.year, ...form.interests].filter(Boolean).join(', ');
+    if (!seed.trim()) return;
+    setBioLoading(true);
+    try {
+      const result = await generateBio(seed, apiKey);
+      if (result) setForm(prev => ({ ...prev, bio: result.trim().slice(0, 150) }));
+    } finally {
+      setBioLoading(false);
+    }
+  };
 
   const validateStep1 = () => {
     const e = {};
@@ -170,7 +186,19 @@ export default function SetupProfile() {
                 {errors.username && <p className="text-accent-danger text-xs mt-1" role="alert">{errors.username}</p>}
               </div>
               <div>
-                <label htmlFor="bio" className="block text-sm text-text-secondary mb-1 font-medium">Bio <span className="text-text-tertiary">(optional)</span></label>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="bio" className="block text-sm text-text-secondary font-medium">Bio <span className="text-text-tertiary">(optional)</span></label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateBio}
+                    disabled={bioLoading || (!form.name.trim() && form.interests.length === 0)}
+                    className="flex items-center gap-1 text-xs text-accent font-bold hover:bg-accent/10 px-2 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label="Generate bio with AI"
+                  >
+                    {bioLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    {bioLoading ? 'Writing...' : 'AI bio'}
+                  </button>
+                </div>
                 <textarea
                   id="bio"
                   value={form.bio}

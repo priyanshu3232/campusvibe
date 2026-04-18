@@ -112,6 +112,93 @@ export async function generateTrivia(apiKey) {
 }
 
 /**
+ * Summarize a collection of reviews for a place into a single concise paragraph.
+ * Returns a short AI summary highlighting common themes (likes, complaints, tips).
+ */
+export async function summarizeReviews(placeName, reviews, apiKey) {
+  const systemPrompt =
+    'You summarize short user reviews for an Indian college-nearby place (cafe, dhaba, library, etc.). ' +
+    'Output 2-3 concise sentences capturing: (1) what students love, (2) common complaints, (3) a quick tip if one emerges. ' +
+    'Casual, neutral tone. No hashtags, no headings, no markdown. Plain text only.';
+  const joined = reviews
+    .slice(0, 40)
+    .map((r, i) => `${i + 1}. [${r.rating}/5] ${r.text}`)
+    .join('\n');
+  const userMsg = `Place: ${placeName}\nReviews:\n${joined}`;
+  return callClaude(systemPrompt, userMsg, apiKey);
+}
+
+/**
+ * Generate a short student bio from a few seed keywords.
+ */
+export async function generateBio(keywords, apiKey) {
+  const systemPrompt =
+    'You write punchy Indian-college-student bios for a social app. ' +
+    'Given 2-5 keywords, craft a single bio under 150 characters. ' +
+    'Casual, a little witty, Hinglish-friendly. Include 1-2 emojis max. ' +
+    'Return only the bio text, nothing else.';
+  return callClaude(systemPrompt, `Keywords: ${keywords}`, apiKey);
+}
+
+/**
+ * Parse a natural-language search query into a filter JSON the app can use.
+ * Returns { keywords: string[], category: string|null, intent: string }.
+ */
+export async function parseSearchQuery(query, apiKey) {
+  const systemPrompt =
+    'You parse a student search query for a campus social app. ' +
+    'Return ONLY a JSON object: {"keywords": ["..."], "category": "food|study|event|people|post|place|null", "intent": "short description"}. ' +
+    'No extra text, no markdown — pure JSON.';
+  return callClaude(systemPrompt, query, apiKey);
+}
+
+/**
+ * Produce a short digest summarizing a batch of notifications.
+ */
+export async function summarizeNotifications(notifications, apiKey) {
+  const systemPrompt =
+    'You summarize a student\'s unread social-app notifications into a single upbeat 1-2 sentence digest. ' +
+    'Mention the most important activity (followers, likes, mentions, chats) in plain language. ' +
+    'No hashtags, no markdown. Return only the digest text.';
+  const joined = notifications
+    .slice(0, 25)
+    .map((n, i) => `${i + 1}. ${n.type}: ${n.text || n.message || ''}`)
+    .join('\n');
+  return callClaude(systemPrompt, joined, apiKey);
+}
+
+/**
+ * Suggest 3 short smart replies the user could tap to send.
+ * Returns a JSON array of exactly 3 short strings.
+ */
+export async function suggestReplies(conversation, apiKey) {
+  const systemPrompt =
+    'You suggest 3 short one-tap smart replies for an Indian college student in a chat. ' +
+    'Each reply must be under 40 characters, casual, Hinglish-friendly, and natural. ' +
+    'Vary the tone: one agreeable, one curious/question, one playful. ' +
+    'Return ONLY a JSON array of exactly 3 strings. No extra text, no markdown.';
+  const lastMessages = conversation
+    .slice(-6)
+    .map(m => `${m.fromMe ? 'Me' : 'Them'}: ${m.text}`)
+    .join('\n');
+  return callClaude(systemPrompt, lastMessages, apiKey);
+}
+
+/**
+ * Check text for toxicity / harassment before posting.
+ * Returns { toxic: bool, severity: "none|mild|severe", reason: string }.
+ */
+export async function moderatePost(text, apiKey) {
+  const systemPrompt =
+    'You are a lightweight content moderator for an Indian college social app. ' +
+    'Check the given text for harassment, slurs, hate speech, doxxing, or explicit content. ' +
+    'Be permissive of casual humour, college banter, and mild Hinglish profanity. ' +
+    'Return ONLY a JSON object: {"toxic": true|false, "severity": "none"|"mild"|"severe", "reason": "short reason or empty"}. ' +
+    'No extra text, no markdown — pure JSON.';
+  return callClaude(systemPrompt, text, apiKey);
+}
+
+/**
  * Validate a word in the word chain game.
  */
 export async function validateWord(word, category, previousWord, apiKey) {

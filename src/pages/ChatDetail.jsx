@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react';
 import { MOCK_USERS } from '../data/mockUsers';
 import { MOCK_CHATS } from '../data/mockChats';
-import { callClaude } from '../api/claude';
+import { callClaude, suggestReplies } from '../api/claude';
 import Avatar from '../components/ui/Avatar';
 import PageTransition from '../components/layout/PageTransition';
 
@@ -35,12 +35,40 @@ export default function ChatDetail() {
   const [messages, setMessages] = useState(existingChat?.messages || []);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [smartReplies, setSmartReplies] = useState([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
   const scrollRef = useRef(null);
   const apiKey = localStorage.getItem('campusvibe_api_key');
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (isAI || !apiKey || messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    if (last.senderId === 'me') {
+      setSmartReplies([]);
+      return;
+    }
+
+    let cancelled = false;
+    setRepliesLoading(true);
+    const convo = messages.map(m => ({ fromMe: m.senderId === 'me', text: m.text }));
+    suggestReplies(convo, apiKey)
+      .then(raw => {
+        if (cancelled || !raw) return;
+        const match = raw.match(/\[[\s\S]*\]/);
+        if (!match) return;
+        try {
+          const arr = JSON.parse(match[0]);
+          if (Array.isArray(arr)) setSmartReplies(arr.filter(s => typeof s === 'string').slice(0, 3));
+        } catch {}
+      })
+      .finally(() => { if (!cancelled) setRepliesLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [messages, isAI, apiKey]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -151,6 +179,31 @@ export default function ChatDetail() {
 
           <div ref={scrollRef} />
         </div>
+
+        {/* Smart replies */}
+        {!isAI && (smartReplies.length > 0 || repliesLoading) && (
+          <div className="px-4 pt-2 pb-1 flex gap-2 overflow-x-auto no-scrollbar">
+            {repliesLoading && smartReplies.length === 0 ? (
+              <div className="flex items-center gap-1.5 text-xs text-text-tertiary px-3 py-1.5">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Suggesting...</span>
+              </div>
+            ) : (
+              smartReplies.map((reply, i) => (
+                <motion.button
+                  key={`${reply}-${i}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => { setInput(reply); setSmartReplies([]); }}
+                  className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/25 text-accent text-xs font-medium hover:bg-accent/15 active:scale-95 transition-all"
+                >
+                  <Sparkles className="w-3 h-3" /> {reply}
+                </motion.button>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Input */}
         <div className="p-4 border-t border-border">
