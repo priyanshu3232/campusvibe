@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AVATARS } from '../data/avatars';
+import { getProfileImage } from '../utils/profileImage';
 import Avatar from '../components/ui/Avatar';
 
 const BRANCHES = [
@@ -55,13 +56,16 @@ export default function SetupProfile() {
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) setStep(3);
     else if (step === 3) {
+      const userId = 'user_me';
       const userData = {
-        userId: 'user_me',
+        userId,
+        id: userId,
         email: pendingEmail || 'demo@iitd.ac.in',
         college: pendingCollege?.name || 'IIT Delhi',
         collegeDomain: pendingCollege?.domain || pendingEmail?.split('@')[1] || 'iitd.ac.in',
         city: pendingCollege?.city || 'New Delhi',
         ...form,
+        imageUrl: getProfileImage(userId || form.username || pendingEmail),
         credScore: 25,
         followers: 0,
         following: 0,

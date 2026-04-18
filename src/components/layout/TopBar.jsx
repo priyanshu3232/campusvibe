@@ -2,12 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Search, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { getProfileImage } from '../../utils/profileImage';
 import Avatar from '../ui/Avatar';
 
 export default function TopBar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const userImage = user?.imageUrl || (user ? getProfileImage(user.id || user.username || user.email) : undefined);
 
   return (
     <header className="sticky top-0 z-30 glass-strong md:hidden" role="banner">
@@ -18,7 +20,7 @@ export default function TopBar() {
             onClick={() => navigate('/profile')}
             aria-label="View profile"
           >
-            <Avatar avatarId={user?.avatar} size="sm" />
+            <Avatar avatarId={user?.avatar} imageUrl={userImage} size="sm" />
           </button>
           <h1
             className="text-xl font-display font-bold text-accent cursor-pointer"

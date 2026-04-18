@@ -194,7 +194,7 @@ export default function Explore() {
                       <div className="relative mb-3">
                         <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-br from-accent to-accent-purple">
                           <div className="w-full h-full rounded-full bg-card-alt flex items-center justify-center overflow-hidden">
-                            <Avatar avatarId={user.avatar} size="lg" className="scale-110" />
+                            <Avatar avatarId={user.avatar} imageUrl={user.imageUrl} size="lg" className="scale-110" />
                           </div>
                         </div>
                         {i === 0 && (

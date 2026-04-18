@@ -1,6 +1,7 @@
 // CampusVibe — Mock user data
 import { COLLEGE_DOMAINS } from './colleges';
 import { AVATARS } from './avatars';
+import { getProfileImage } from '../utils/profileImage';
 
 const domains = Object.keys(COLLEGE_DOMAINS);
 
@@ -8,7 +9,7 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export const MOCK_USERS = [
+const RAW_USERS = [
   {
     id: 'user_1',
     name: 'Rahul Sharma',
@@ -650,5 +651,12 @@ export const MOCK_USERS = [
     joinedAt: '2025-09-10T10:00:00Z',
   },
 ];
+
+// Attach a stable face photo from /public/profiles to each mock user.
+// Keeps emoji `avatar` as a fallback for when the image fails to load.
+export const MOCK_USERS = RAW_USERS.map(user => ({
+  ...user,
+  imageUrl: getProfileImage(user.id),
+}));
 
 export default MOCK_USERS;

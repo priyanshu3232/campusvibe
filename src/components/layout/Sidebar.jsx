@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, PlusCircle, MessageCircle, User, Star, Gamepad2, Trophy, Bell, Settings, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getProfileImage } from '../../utils/profileImage';
 import Avatar from '../ui/Avatar';
 import CollegeLogo from '../ui/CollegeLogo';
 
@@ -24,6 +25,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const userImage = user?.imageUrl || (user ? getProfileImage(user.id || user.username || user.email) : undefined);
 
   return (
     <aside
@@ -87,7 +89,7 @@ export default function Sidebar() {
           onClick={() => navigate('/profile')}
           className="mx-3 mb-3 p-3 rounded-xl bg-card border border-border flex items-center gap-3 hover:bg-card-alt transition-colors text-left"
         >
-          <Avatar avatarId={user.avatar} size="sm" />
+          <Avatar avatarId={user.avatar} imageUrl={userImage} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-text-primary truncate">{user.name}</p>
             <p className="text-xs text-text-tertiary truncate flex items-center gap-1">
@@ -101,7 +103,7 @@ export default function Sidebar() {
       {collapsed && (
         <div className="flex justify-center mb-4">
           <button onClick={() => navigate('/profile')}>
-            <Avatar avatarId={user?.avatar} size="sm" />
+            <Avatar avatarId={user?.avatar} imageUrl={userImage} size="sm" />
           </button>
         </div>
       )}

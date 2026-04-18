@@ -174,7 +174,7 @@ function ChatRow({ chat, delay, onOpen }) {
             <Users className="w-6 h-6 text-accent-warm" />
           </div>
         ) : (
-          <Avatar avatarId={chat.participant?.avatar} size="lg" />
+          <Avatar avatarId={chat.participant?.avatar} imageUrl={chat.participant?.imageUrl} size="lg" />
         )}
         {chat.online && !chat.stale && (
           <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-accent border-[3px] border-primary" />

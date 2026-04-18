@@ -70,6 +70,7 @@ export default function UserProfile() {
           <div className="flex items-start justify-between mb-4">
             <Avatar
               avatarId={profileUser.avatar}
+              imageUrl={profileUser.imageUrl}
               size="xl"
               showRing
               ringColor="accent-purple"

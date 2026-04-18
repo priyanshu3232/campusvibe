@@ -65,7 +65,7 @@ function PostCard({ post, index = 0 }) {
             onClick={(e) => { e.stopPropagation(); user && navigate(`/profile/${user.id}`); }}
             aria-label={`View ${user?.name}'s profile`}
           >
-            <Avatar avatarId={user?.avatar} size="md" />
+            <Avatar avatarId={user?.avatar} imageUrl={user?.imageUrl} size="md" />
           </button>
         )}
         <div className="flex-1 min-w-0">

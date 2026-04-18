@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { getProfileImage } from '../utils/profileImage';
 import Avatar from '../components/ui/Avatar';
 import PageTransition from '../components/layout/PageTransition';
 
@@ -85,7 +86,12 @@ export default function Settings() {
           className="w-10 h-10 rounded-full bg-card-alt border border-border overflow-hidden flex items-center justify-center active:scale-95 transition-transform"
           aria-label="Open profile"
         >
-          <Avatar avatarId={user?.avatar} size="md" className="scale-110" />
+          <Avatar
+            avatarId={user?.avatar}
+            imageUrl={user?.imageUrl || (user ? getProfileImage(user.id || user.username || user.email) : undefined)}
+            size="md"
+            className="scale-110"
+          />
         </button>
       </header>
 

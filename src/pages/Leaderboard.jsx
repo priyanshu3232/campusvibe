@@ -148,7 +148,7 @@ export default function Leaderboard() {
                 <span className="w-6 font-display font-black italic text-text-tertiary">
                   {String(u.rank).padStart(2, '0')}
                 </span>
-                <Avatar avatarId={u.avatar} size="lg" className="ring-2 ring-border/40" />
+                <Avatar avatarId={u.avatar} imageUrl={u.imageUrl} size="lg" className="ring-2 ring-border/40" />
                 <div className="flex-1 min-w-0">
                   <p className="font-display font-bold text-text-primary truncate">{u.name}</p>
                   <p className="text-xs text-text-tertiary truncate">
@@ -237,6 +237,7 @@ function PodiumCol({ user, rank, color, barHeight, avatarSize, delay, isFirst })
         >
           <Avatar
             avatarId={user.avatar}
+            imageUrl={user.imageUrl}
             size={avatarSize === 'lg' ? 'xl' : 'lg'}
             className="scale-100"
           />

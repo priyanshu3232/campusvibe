@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useFeed } from '../context/FeedContext';
 import { getLevel } from '../utils/credSystem';
+import { getProfileImage } from '../utils/profileImage';
 import Avatar from '../components/ui/Avatar';
 import EmptyState from '../components/ui/EmptyState';
 import PageTransition from '../components/layout/PageTransition';
@@ -56,7 +57,12 @@ export default function Profile() {
           <div className="relative">
             <div className="absolute inset-0 -m-2 rounded-full border-[3px] border-accent shadow-[0_0_20px_rgba(200,245,96,0.35)] animate-pulse" />
             <div className="relative z-10 w-28 h-28 rounded-full border-4 border-primary overflow-hidden bg-card-alt flex items-center justify-center">
-              <Avatar avatarId={user?.avatar} size="xl" className="scale-110" />
+              <Avatar
+                avatarId={user?.avatar}
+                imageUrl={user?.imageUrl || (user ? getProfileImage(user.id || user.username || user.email) : undefined)}
+                size="xl"
+                className="scale-110"
+              />
             </div>
             <div className="absolute -bottom-1 -right-1 z-20 bg-accent text-primary font-display font-bold text-[10px] px-3 py-1 rounded-full border border-primary shadow-lg uppercase tracking-wider">
               {yearLabel(user?.year)}

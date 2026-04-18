@@ -79,7 +79,7 @@ export default function ChatDetail() {
               <Sparkles className="w-5 h-5 text-accent" />
             </div>
           ) : (
-            <Avatar avatarId={otherUser?.avatar} size="md" online />
+            <Avatar avatarId={otherUser?.avatar} imageUrl={otherUser?.imageUrl} size="md" online />
           )}
           <div className="flex-1 min-w-0">
             <p className={`font-semibold text-sm truncate ${isAI ? 'text-accent' : 'text-text-primary'}`}>

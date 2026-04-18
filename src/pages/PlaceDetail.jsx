@@ -144,7 +144,7 @@ export default function PlaceDetail() {
                   className="p-3 rounded-xl bg-card-alt border border-border"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <Avatar avatarId={reviewer?.avatar} size="sm" />
+                    <Avatar avatarId={reviewer?.avatar} imageUrl={reviewer?.imageUrl} size="sm" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">{reviewer?.name || 'Student'}</p>
                       <StarRating value={review.rating} readOnly size="sm" />
