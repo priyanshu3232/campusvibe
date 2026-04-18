@@ -87,6 +87,10 @@ export default function App() {
         </>
       ) : (
         <>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/login" element={<Navigate to="/home" replace />} />
+          <Route path="/verify" element={<Navigate to="/home" replace />} />
+          <Route path="/setup-profile" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
           <Route path="/create" element={<AppLayout><Create /></AppLayout>} />

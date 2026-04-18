@@ -74,7 +74,7 @@ export default function SetupProfile() {
         joinedAt: new Date().toISOString(),
       };
       login(userData);
-      navigate('/home');
+      navigate('/home', { replace: true });
     }
   };
 
